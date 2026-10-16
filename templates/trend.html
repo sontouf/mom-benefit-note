@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% from "_macros.html" import grid, ico, share, ad %}
+{% block title %}{{ t.title }} | {{ site_name }}{% endblock %}
+{% block desc %}{{ t.hook }}. {{ t.why | truncate(90) }}{% endblock %}
+{% block main %}
+<nav class="crumbs"><a href="{{ u('/') }}">홈</a> › <a href="{{ u('/trend/') }}">트렌드</a></nav>
+<header class="stage-head">
+  {{ ico(t.icon, 72) }}
+  <div>
+    <p class="eyebrow">{{ t.hook }}</p>
+    <h1>{{ t.title }}</h1>
+  </div>
+</header>
+
+<section class="panel">
+  <h2 class="ih">{{ ico('bulb') }} 왜 다들 이야기할까요?</h2>
+  <p>{{ t.why }}</p>
+  {% if t.threads %}
+  <div class="quotes">
+    {% for q in t.threads %}
+    <blockquote class="quote">
+      <p>“{{ q.quote }}”</p>
+      <a href="{{ q.url }}" rel="nofollow noopener" target="_blank">스레드 @{{ q.handle }} 원문 보기</a>
+    </blockquote>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% if t.refs %}
+  <p class="hint">참고: {% for r in t.refs %}<a href="{{ r.url }}" rel="nofollow noopener" target="_blank">{{ r.title }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</p>
+  {% endif %}
+  <p class="caution">⚠️ {{ t.caution }}</p>
+</section>
+
+{{ ad("trend-1") }}
+
+<section>
+  <h2 class="ih">{{ ico('check') }} 공공데이터로 확인된 관련 혜택 <small class="count">{{ t.count }}건</small></h2>
+  <p class="hint">행정안전부 공공서비스 정보에서 매일 자동으로 찾아 붙여요. 전국 공통 → 많이 찾는 순.</p>
+  {{ grid(t['items']) }}
+</section>
+
+{{ share(t.title) }}
+<p class="meta">주제 선정·인용 확인일 {{ checked }} · 인용은 원문 일부이며 저작권은 각 작성자에게 있어요.</p>
+{% endblock %}

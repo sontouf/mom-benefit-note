@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}새로 생긴·바뀐 육아 지원금 (매일 기록) | {{ site_name }}{% endblock %}
+{% block desc %}어제와 비교해 새로 생기거나 내용이 바뀐 임신·출산·육아·교육 지원금을 날짜별로 기록합니다.{% endblock %}
+{% block main %}
+<nav class="crumbs"><a href="{{ u('/') }}">홈</a> › 신규·변경</nav>
+<h1>🆕 신규·변경 기록</h1>
+<p class="lead">매일 아침 전날과 비교해서 새로 생긴 혜택, 금액·대상·기한이 바뀐 혜택, 끝난 혜택을 기록해요.</p>
+{% set labels = {"new": "신규", "updated": "변경", "removed": "종료"} %}
+{% set fnames = {"name": "이름", "target_text": "대상", "criteria": "선정기준", "content": "지원내용", "how": "신청방법", "deadline_text": "신청기한", "apply_url": "신청링크"} %}
+{% if not events %}<div class="panel"><p>오늘부터 기록을 시작했어요. 내일 아침부터 변경 내역이 쌓입니다.</p></div>{% endif %}
+{% for day, evs in events %}
+<section>
+  <h2>{{ day }} <small class="count">{{ evs | length }}건</small></h2>
+  <ul class="events">
+  {% for e in evs %}
+    <li><span class="badge {{ 'hot' if e.type == 'new' }}">{{ labels[e.type] }}</span>
+      {% if e.rec %}<a href="{{ u('/s/' ~ e.id ~ '/') }}">{{ e.name }}</a>{% else %}{{ e.name }}{% endif %}
+      {% if e.fields %}<small> — {% for f in e.fields %}{{ fnames.get(f, f) }}{% if not loop.last %}, {% endif %}{% endfor %} 변경</small>{% endif %}
+    </li>
+  {% endfor %}
+  </ul>
+</section>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}우리 동네 출산·육아 지원금 (시군구별) | {{ site_name }}{% endblock %}
+{% block desc %}시도·시군구별로 엄마들이 받을 수 있는 출산축하금, 육아·교육 지원금, 공과금 감면 혜택을 모았습니다.{% endblock %}
+{% block main %}
+<nav class="crumbs"><a href="{{ u('/') }}">홈</a> › 우리 동네</nav>
+<h1>📍 우리 동네 혜택</h1>
+<p class="lead">출산축하금이나 입학축하금처럼 지자체마다 다른 혜택을 모았어요. 전국 공통 혜택은 <a href="{{ u('/') }}">홈의 단계별 보기</a>에서 확인하세요.</p>
+{% for s, n in sidos %}
+<section class="panel region-block">
+  <h2><a href="{{ u('/region/' ~ s ~ '/') }}">{{ s }}</a> <small class="count">{{ n | comma }}건</small></h2>
+  <div class="chips">
+  {% for sg, m in sigungus[s] %}<a class="chip" href="{{ u('/region/' ~ s ~ '/' ~ sg ~ '/') }}">{{ sg }} <small>{{ m | comma }}</small></a>{% endfor %}
+  </div>
+</section>
+{% endfor %}
+{% endblock %}

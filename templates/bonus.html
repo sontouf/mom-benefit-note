@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ico, share %}
+{% block title %}우리 동네 출산축하금 순위 {{ today.year }} (시군구별 비교) | {{ site_name }}{% endblock %}
+{% block desc %}공공데이터로 집계한 전국 시군구 출산축하금·출산장려금 최대 금액 순위. 1위 {{ bonus[0].sigungu }} {{ bonus[0].amount_label }}. 매일 자동 갱신.{% endblock %}
+{% block main %}
+<nav class="crumbs"><a href="{{ u('/') }}">홈</a> › <a href="{{ u('/trend/') }}">트렌드</a></nav>
+<header class="stage-head">
+  {{ ico('trophy', 72) }}
+  <div>
+    <p class="eyebrow">공공데이터 {{ total }}개 시군구 집계</p>
+    <h1>우리 동네 출산축하금 순위</h1>
+  </div>
+</header>
+<p class="lead">각 시군구 출산축하금·장려금의 '최대 금액'을 지원 내용에서 뽑아 비교했어요. 보통 셋째 이상, 분할 지급 기준인 경우가 많으니 순위는 참고만 하세요.</p>
+
+<ol class="rank">
+{% for r in bonus %}
+  <li>
+    <span class="rk {{ 'top' if loop.index <= 3 }}">{{ loop.index }}</span>
+    <a href="{{ u('/s/' ~ r.id ~ '/') }}">
+      <strong>{{ sido_short.get(r.sido, r.sido) }} {{ r.sigungu }}</strong>
+      <span class="hint">{{ r.name }}</span>
+    </a>
+    <em class="amt">{{ r.amount_label }}</em>
+  </li>
+{% endfor %}
+</ol>
+{{ share('우리 동네 출산축하금 순위') }}
+<p class="meta">출처: 행정안전부 공공서비스(혜택) 정보 · 금액 자동 추출이라 실제와 다를 수 있어요.</p>
+{% endblock %}

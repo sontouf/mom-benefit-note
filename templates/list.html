@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "_macros.html" import grid, ad %}
+{% block title %}{{ title }}{% if page > 1 %} ({{ page }}페이지){% endif %} | {{ site_name }}{% endblock %}
+{% block desc %}{{ desc }}{% endblock %}
+{% block main %}
+<nav class="crumbs"><a href="{{ u('/') }}">홈</a>{% for label, href in crumbs %} › {% if href %}<a href="{{ u(href) }}">{{ label }}</a>{% else %}{{ label }}{% endif %}{% endfor %}</nav>
+<h1>{{ heading }} <small class="count">{{ total | comma }}건</small></h1>
+<p class="lead">{{ desc }}</p>
+
+{% if subregions %}
+<div class="chips">
+{% for sg, n in subregions %}<a class="chip" href="{{ u('/region/' ~ sido ~ '/' ~ sg ~ '/') }}">{{ sg }} <small>{{ n | comma }}</small></a>{% endfor %}
+</div>
+{% endif %}
+
+<p class="sort-note">{{ sort_note or '엄마들이 많이 찾는 순' }}</p>
+{{ grid(items) }}
+{{ ad("list-1") }}
+
+{% if pages > 1 %}
+<nav class="pager">
+  {% if page > 1 %}<a href="{{ u(base if page == 2 else base ~ 'page/' ~ (page - 1) ~ '/') }}">← 이전</a>{% endif %}
+  <span>{{ page }} / {{ pages }}</span>
+  {% if page < pages %}<a href="{{ u(base ~ 'page/' ~ (page + 1) ~ '/') }}">다음 →</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

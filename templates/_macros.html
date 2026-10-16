@@ -1,0 +1,70 @@
+{% macro card(r, check=False) %}
+<a class="card" href="{{ u('/s/' ~ r.id ~ '/') }}">
+  {% if r.amount_label %}<p class="amt">{{ r.amount_label }}</p>{% endif %}
+  <h3>{{ r.name }}</h3>
+  <p class="sum">{{ r.summary | truncate(70) }}</p>
+  <div class="card-foot">
+    {% set d = dday(r) %}
+    {% if d %}<span class="badge {{ d[1] }}">{{ d[0] }}</span>{% endif %}
+    <span class="where">{{ ((r.sigungu or sido_short.get(r.sido, r.sido)) ~ ' · ') if r.sido else ('전국 · ' if r.national else '') }}{{ r.org | truncate(16, true, '…') }}</span>
+  </div>
+</a>
+{% endmacro %}
+
+{% macro grid(items) %}
+<div class="grid">
+{% for r in items %}{{ card(r) }}{% endfor %}
+</div>
+{% endmacro %}
+
+{% macro checklist(items, key) %}
+<ol class="checklist" data-key="{{ key }}">
+{% for r in items %}
+  <li>
+    <label class="ck"><input type="checkbox" value="{{ r.id }}" aria-label="{{ r.name }} 신청 완료"><span class="box"></span></label>
+    <a href="{{ u('/s/' ~ r.id ~ '/') }}">
+      <strong>{{ r.name }}</strong>
+      <span class="ck-meta">{% if r.amount_label %}<em>{{ r.amount_label }}</em> · {% endif %}{{ (dday(r) or ['기관 문의'])[0] }}</span>
+    </a>
+  </li>
+{% endfor %}
+</ol>
+{% endmacro %}
+
+{% macro ad(slot) %}
+{% if adsense %}
+<div class="ad"><ins class="adsbygoogle" style="display:block" data-ad-client="{{ adsense }}" data-ad-slot="{{ slot }}" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({});</script></div>
+{% endif %}
+{% endmacro %}
+
+{% macro share(title) %}
+<div class="share">
+  <button class="btn ghost" type="button" data-share data-title="{{ title }}">💬 엄마들 단톡방에 공유</button>
+</div>
+{% endmacro %}
+
+{% macro stage_tiles() %}
+<div class="tiles">
+{% for s in stage_list %}{% if stage_counts.get(s.slug) %}
+  <a class="tile" href="{{ u('/stage/' ~ s.slug ~ '/') }}">
+    <img class="ico3d" src="{{ u('/static/emoji/' ~ s.slug ~ '.png') }}" alt="" width="44" height="44" loading="lazy">
+    <strong>{{ s.name }}</strong>
+    <small>{{ stage_counts[s.slug] | comma }}건</small>
+  </a>
+{% endif %}{% endfor %}
+</div>
+{% endmacro %}
+
+{% macro ico(name, size=28) %}<img class="ico3d" src="{{ u('/static/emoji/' ~ name ~ '.png') }}" alt="" width="{{ size }}" height="{{ size }}" loading="lazy">{% endmacro %}
+
+{% macro trend_card(t) %}
+<a class="tcard" href="{{ u('/trend/' ~ t.slug ~ '/') }}">
+  {{ ico(t.icon, 48) }}
+  <div>
+    <h3>{{ t.title }}</h3>
+    <p>{{ t.hook }}</p>
+    {% if t.threads %}<span class="src">스레드 @{{ t.threads[0].handle }} 외 · 관련 혜택 {{ t.count }}건</span>{% else %}<span class="src">관련 혜택 {{ t.count }}건</span>{% endif %}
+  </div>
+</a>
+{% endmacro %}

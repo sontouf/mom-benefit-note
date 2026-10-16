@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}우리 집 맞춤 지원금 찾기 (임신·출산·육아·교육) | {{ site_name }}{% endblock %}
+{% block desc %}아이 단계와 사는 지역만 고르면 받을 수 있는 지원금을 30초 만에 골라 드려요. 입력한 정보는 저장되지 않습니다.{% endblock %}
+{% block main %}
+<nav class="crumbs"><a href="{{ u('/') }}">홈</a> › 맞춤 찾기</nav>
+<h1>30초 맞춤 찾기</h1>
+<p class="lead">고른 내용은 이 화면 안에서만 쓰이고 어디에도 저장·전송되지 않아요.</p>
+
+<form id="f" class="finder">
+  <fieldset>
+    <legend>1. 우리 집 상황 <small>(여러 개 골라도 돼요)</small></legend>
+    <div class="pick">
+    {% for s in stage_list %}{% if stage_counts.get(s.slug) %}
+      <label class="pill"><input type="checkbox" name="stage" value="{{ s.slug }}"><span>{{ s.emoji }} {{ s.name }}</span></label>
+    {% endif %}{% endfor %}
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend>2. 사는 곳</legend>
+    <select name="sido" aria-label="시도">
+      <option value="">시도 선택 (전국 공통만 보기)</option>
+      {% for s, n in sidos %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+    </select>
+    <select name="sigungu" aria-label="시군구" disabled><option value="">시군구 전체</option></select>
+  </fieldset>
+  <fieldset>
+    <legend>3. 소득 <small>(모르면 그냥 두세요)</small></legend>
+    <select name="income" aria-label="기준중위소득">
+      <option value="">모름 / 선택 안 함</option>
+      <option value="JA0201">기준중위소득 50% 이하</option><option value="JA0202">51~75%</option>
+      <option value="JA0203">76~100%</option><option value="JA0204">101~200%</option>
+      <option value="JA0205">200% 초과</option>
+    </select>
+  </fieldset>
+  <button class="btn wide" type="submit">우리 집 혜택 찾기</button>
+</form>
+
+<p id="status" class="sort-note" aria-live="polite"></p>
+<div id="results" class="grid"></div>
+<button id="more" class="btn ghost wide" type="button" hidden>더 보기</button>
+
+<script>window.HT = {data: "{{ u('/static/find.json') }}", svc: "{{ u('/s/') }}"};</script>
+<script src="{{ u('/static/find.js') }}" defer></script>
+{% endblock %}

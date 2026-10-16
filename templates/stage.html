@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "_macros.html" import grid, ad, checklist, share, ico %}
+{% set place = sido_short[sido] ~ ' ' if sido else '' %}
+{% block title %}{{ place }}{{ info.name }} 지원금 총정리 {{ today.year }}{% if page > 1 %} ({{ page }}페이지){% endif %} | {{ site_name }}{% endblock %}
+{% block desc %}{{ place }}{{ info.name }} 가정이 받을 수 있는 지원금 {{ total | comma }}건 — {{ info.desc }}. 신청기한·금액·신청방법을 한눈에 확인하세요.{% endblock %}
+{% block main %}
+<nav class="crumbs"><a href="{{ u('/') }}">홈</a> › {% if sido %}<a href="{{ u('/stage/' ~ info.slug ~ '/') }}">{{ info.name }}</a> › {{ sido_short[sido] }}{% else %}{{ info.name }}{% endif %}</nav>
+
+<header class="stage-head">
+  {{ ico(info.slug, 72) }}
+  <div>
+    <h1>{{ place }}{{ info.name }} 혜택</h1>
+    <p class="lead">{{ info.desc }} · 총 <strong>{{ total | comma }}건</strong></p>
+  </div>
+</header>
+
+{% if page == 1 and must %}
+<section class="panel">
+  <h2 class="ih">{{ ico('check') }} 전국 공통, 꼭 챙길 것</h2>
+  <p class="hint">신청한 건 체크해 두세요. 체크는 이 휴대폰에만 저장돼요.</p>
+  {{ checklist(must, 'stage-' ~ info.slug) }}
+  {{ share(place ~ info.name ~ ' 혜택 체크리스트') }}
+</section>
+{% endif %}
+
+{% if page == 1 and money %}
+<section>
+  <h2 class="ih">{{ ico('money') }} 금액이 큰 혜택</h2>
+  {{ grid(money) }}
+</section>
+{% endif %}
+
+<section>
+  <h2 class="ih">{{ ico('pin') }} 지역 골라 보기</h2>
+  <div class="chips">
+    <a class="chip {{ 'on' if not sido }}" href="{{ u('/stage/' ~ info.slug ~ '/') }}">전체</a>
+    {% for sd, n in sub %}<a class="chip {{ 'on' if sd == sido }}" href="{{ u('/stage/' ~ info.slug ~ '/' ~ sd ~ '/') }}">{{ sido_short[sd] }} <small>{{ n | comma }}</small></a>{% endfor %}
+  </div>
+</section>
+
+{{ ad("stage-1") }}
+
+<section>
+  <h2>{{ place }}{{ info.name }} 혜택 전체 <small class="count">많이 찾는 순</small></h2>
+  {{ grid(items) }}
+  {% if pages > 1 %}
+  <nav class="pager">
+    {% if page > 1 %}<a href="{{ u(base if page == 2 else base ~ 'page/' ~ (page - 1) ~ '/') }}">← 이전</a>{% endif %}
+    <span>{{ page }} / {{ pages }}</span>
+    {% if page < pages %}<a href="{{ u(base ~ 'page/' ~ (page + 1) ~ '/') }}">다음 →</a>{% endif %}
+  </nav>
+  {% endif %}
+</section>
+{% endblock %}

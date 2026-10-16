@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* DESIGN.md §6 — 1080×1350, 바탕 --bg, 강조 --accent 하나 */
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1080px; height: 1350px; }
+body { background: #FBF8F4; color: #221C18; font-family: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans CJK KR", sans-serif;
+  word-break: keep-all; letter-spacing: -0.02em; padding: 96px 88px; display: flex; flex-direction: column; }
+.top { display: flex; justify-content: space-between; align-items: center; font-size: 30px; font-weight: 700; color: #74695F; }
+.brand { display: flex; align-items: center; gap: 14px; color: #221C18; }
+.dot { width: 22px; height: 22px; border-radius: 99px; background: #E0533A; }
+.accent { color: #C0402A; }
+.muted { color: #74695F; }
+.mid { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+/* cover */
+.eyebrow { font-size: 40px; font-weight: 800; color: #C0402A; margin-bottom: 28px; }
+.headline { font-size: 104px; line-height: 1.18; font-weight: 800; }
+.sub { font-size: 44px; line-height: 1.5; margin-top: 40px; color: #74695F; font-weight: 600; }
+.list { margin-top: 56px; display: flex; flex-direction: column; gap: 18px; }
+.list div { font-size: 38px; font-weight: 700; display: flex; gap: 20px; }
+.list b { color: #C0402A; min-width: 64px; }
+/* item */
+.num { font-size: 40px; font-weight: 800; color: #C0402A; }
+.amt { font-size: 136px; font-weight: 800; color: #C0402A; line-height: 1.05; margin: 24px 0 36px; font-variant-numeric: tabular-nums; }
+.amt.small { font-size: 88px; }
+.name { font-size: 72px; font-weight: 800; line-height: 1.25; }
+.desc { font-size: 40px; line-height: 1.55; color: #74695F; margin-top: 32px; font-weight: 500; }
+.facts { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 48px; }
+.pill { font-size: 34px; font-weight: 700; padding: 14px 28px; border-radius: 999px; background: #F3EDE6; color: #221C18; }
+.pill.hot { background: #FDEDE8; color: #C0402A; }
+/* end */
+.big { font-size: 92px; font-weight: 800; line-height: 1.25; }
+.save { display: inline-flex; align-items: center; gap: 18px; margin-top: 56px; font-size: 44px; font-weight: 800;
+  background: #E0533A; color: #fff; padding: 28px 44px; border-radius: 28px; align-self: flex-start; }
+.foot { font-size: 28px; color: #74695F; line-height: 1.5; }
+.page { font-size: 30px; font-weight: 700; color: #74695F; }
+.ico { width: 168px; height: 168px; margin-bottom: 36px; }
+.ico.sm { width: 120px; height: 120px; position: absolute; right: 88px; top: 190px; }
+.mid { position: relative; }
+</style>
+</head>
+<body>
+<div class="top">
+  <span class="brand"><span class="dot"></span>{{ site_name }}</span>
+  <span class="page">{{ idx }} / {{ total }}</span>
+</div>
+
+<div class="mid">
+<img class="ico {{ 'sm' if kind == 'item' }}" src="{{ emoji }}/{{ icon }}.png" alt="">
+{% if kind == "cover" %}
+  <p class="eyebrow">{{ eyebrow }}</p>
+  <h1 class="headline">{{ headline | safe }}</h1>
+  <p class="sub">{{ sub }}</p>
+  {% if preview %}
+  <div class="list">
+    {% for p in preview %}<div><b>{{ loop.index }}</b><span>{{ p }}</span></div>{% endfor %}
+  </div>
+  {% endif %}
+{% elif kind == "item" %}
+  <p class="num">{{ '%02d' % n }}</p>
+  {% if r.amount_label %}<p class="amt {{ 'small' if r.amount_label | length > 9 }}">{{ r.amount_label }}</p>{% else %}<p class="amt small">{{ r.support_type or '지원' }}</p>{% endif %}
+  <h2 class="name">{{ title | truncate(30, true, '…') }}</h2>
+  <p class="desc">{{ r.summary | truncate(62, true, '…') }}</p>
+  <div class="facts">
+    {% if dd %}<span class="pill {{ 'hot' if dd[1] == 'hot' }}">{{ dd[0] }}</span>{% endif %}
+    <span class="pill">{{ where }}</span>
+  </div>
+{% else %}
+  <p class="eyebrow">신청 안 하면 0원</p>
+  <h1 class="big">저장해 두고<br>하나씩 <span class="accent">신청</span>하세요</h1>
+  <span class="save">저장하고 엄마들에게 공유하기</span>
+  <p class="sub">지역별·아이 단계별 전체 목록은<br>첫 댓글 링크에 있어요</p>
+{% endif %}
+</div>
+
+<p class="foot">출처: 행정안전부 공공서비스(혜택) 정보 · 자동 분석이라 실제와 다를 수 있어요. 신청 전 기관 확인 필수</p>
+</body>
+</html>

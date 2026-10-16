@@ -1,0 +1,73 @@
+name: daily-update
+
+on:
+  schedule:
+    - cron: "0 21 * * *"   # 매일 06:00 KST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: daily-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - name: Test
+        run: python -m unittest discover -s tests
+
+      - name: Fetch public data
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: python run.py fetch
+
+      - name: Commit data snapshot (변경 이력 보존)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --cached --quiet || git commit -m "data: $(TZ=Asia/Seoul date +%F) 갱신"
+          git push
+
+      - name: 한글 폰트 (카드뉴스 렌더링 대비)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk
+
+      - name: Build site + 스레드 카드뉴스
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          BASE_PATH: ${{ vars.BASE_PATH }}
+          SITE_NAME: ${{ vars.SITE_NAME }}
+          ADSENSE_CLIENT: ${{ vars.ADSENSE_CLIENT }}
+          CNAME: ${{ vars.CNAME }}
+          CHROME_BIN: /usr/bin/google-chrome
+        run: python run.py cards
+
+      - name: 스레드 게시글 초안 보관
+        uses: actions/upload-artifact@v4
+        with:
+          name: threads-drafts
+          path: drafts/
+          retention-days: 14
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

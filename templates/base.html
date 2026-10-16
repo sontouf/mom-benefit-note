@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ site_name }}{% endblock %}</title>
+<meta name="description" content="{% block desc %}임신·출산·육아·교육·살림 지원금을 매일 자동으로 모아 아이 나이와 우리 동네 기준으로 정리합니다. 신청 안 하면 0원, 놓치지 마세요.{% endblock %}">
+<link rel="canonical" href="{{ canonical }}">
+<meta name="theme-color" content="#FBF8F4">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ site_name }}">
+<meta property="og:title" content="{{ self.title() }}">
+<meta property="og:description" content="{{ self.desc() }}">
+<meta property="og:url" content="{{ canonical }}">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="{{ u('/static/style.css') }}">
+{% if adsense %}
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ adsense }}" crossorigin="anonymous"></script>
+{% endif %}
+{% block head %}{% endblock %}
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-in">
+    <a class="logo" href="{{ u('/') }}"><span class="logo-dot"></span>{{ site_name }}</a>
+    <nav class="top-nav">
+      <a href="{{ u('/find/') }}">맞춤 찾기</a>
+      <a href="{{ u('/deadline/') }}">마감 임박</a>
+      <a href="{{ u('/region/') }}">우리 동네</a>
+    </nav>
+  </div>
+</header>
+<main class="wrap">
+{% block main %}{% endblock %}
+</main>
+<footer class="foot">
+  <div class="wrap">
+    <p><strong>{{ site_name }}</strong>은 정부 공식 사이트가 아니에요. 금액·자격은 자동 분석 결과라 실제와 다를 수 있으니, 신청 전 꼭 기관 공식 안내를 확인하세요.</p>
+    <p>출처: 행정안전부 「대한민국 공공서비스(혜택) 정보」 · 공공데이터포털 · 매일 아침 자동 갱신 (최종 {{ today.isoformat() }}) · <a href="{{ u('/about/') }}">사이트 소개</a> · <a href="{{ u('/changes/') }}">신규·변경 기록</a></p>
+  </div>
+</footer>
+<script src="{{ u('/static/app.js') }}" defer></script>
+</body>
+</html>

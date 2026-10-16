@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% from "_macros.html" import grid, ad, share %}
+{% set region = (r.sido ~ (' ' ~ r.sigungu if r.sigungu else '')) if r.sido else ('전국' if r.national else r.org ~ ' 관할') %}
+{% block title %}{{ r.name }}{% if r.amount_label %} {{ r.amount_label }}{% endif %} 신청방법·대상 | {{ site_name }}{% endblock %}
+{% block desc %}{{ r.name }}({{ region }}) — {{ r.summary | truncate(100) }} 신청기한: {{ r.deadline_text or '기관 문의' }}{% endblock %}
+{% block head %}
+<script type="application/ld+json">
+{{ {
+  "@context": "https://schema.org",
+  "@type": "GovernmentService",
+  "name": r.name,
+  "description": r.summary,
+  "serviceType": stages[r.stages[0]].name if r.stages else r.field,
+  "areaServed": region if r.sido else "대한민국",
+  "provider": {"@type": "GovernmentOrganization", "name": r.org},
+  "url": canonical
+} | tojson }}
+</script>
+{% endblock %}
+{% block main %}
+<nav class="crumbs"><a href="{{ u('/') }}">홈</a>{% if r.stages %} › <a href="{{ u('/stage/' ~ r.stages[0] ~ '/') }}">{{ stages[r.stages[0]].name }}</a>{% endif %}{% if r.sido %} › <a href="{{ u('/region/' ~ r.sido ~ '/') }}">{{ sido_short[r.sido] }}</a>{% endif %}</nav>
+
+<article class="svc">
+  <div class="svc-tags">
+    {% for s in r.stages %}<a class="chip sm" href="{{ u('/stage/' ~ s ~ '/') }}">{{ stages[s].name }}</a>{% endfor %}
+  </div>
+  <h1>{{ r.name }}</h1>
+  <p class="lead">{{ r.summary }}</p>
+
+  <div class="keybox">
+    <div class="k-amt">
+      <span class="k-label">받을 수 있는 금액</span>
+      {% if r.amount_label %}<strong class="amt xl">{{ r.amount_label }}</strong>
+      {% else %}<strong class="k-none">{{ r.support_type or '지원' }} · 아래 지원 내용 참고</strong>{% endif %}
+    </div>
+    <dl class="k-facts">
+      <div><dt>신청 기한</dt><dd>{% set d = dday(r) %}{% if d and d[1] %}<span class="badge {{ d[1] }}">{{ d[0] }}</span> {% endif %}{{ r.deadline_text or '기관 문의' }}</dd></div>
+      <div><dt>지역</dt><dd>{{ region }}</dd></div>
+      <div><dt>담당</dt><dd>{{ r.org }}{% if r.dept %} {{ r.dept }}{% endif %}</dd></div>
+      {% if r.contact %}<div><dt>문의</dt><dd>{{ r.contact }}</dd></div>{% endif %}
+    </dl>
+    <div class="cta">
+      {% if r.apply_url %}<a class="btn" href="{{ r.apply_url }}" rel="nofollow noopener" target="_blank">온라인 신청하기</a>{% endif %}
+      {% if r.detail_url %}<a class="btn ghost" href="{{ r.detail_url }}" rel="nofollow noopener" target="_blank">정부24 원문 보기</a>{% endif %}
+    </div>
+  </div>
+
+  {% macro sec(title, body, cls='') %}{% if body %}<section class="blk {{ cls }}"><h2>{{ title }}</h2><div class="txt">{{ body | text }}</div></section>{% endif %}{% endmacro %}
+  {{ sec("👤 누가 받을 수 있나요?", r.target_text) }}
+  {{ sec("🎁 무엇을 받나요?", r.content) }}
+  {{ ad("svc-1") }}
+  {{ sec("📋 선정 기준", r.criteria) }}
+  {{ sec("✍️ 어떻게 신청하나요?", r.how) }}
+  {{ sec("📎 준비 서류", r.documents) }}
+  {{ sec("공무원이 대신 확인하는 서류 (안 내도 돼요)", r.documents_official, 'muted') }}
+  {{ sec("접수 기관", r.reception, 'muted') }}
+  {{ sec("근거 법령", r.laws, 'muted') }}
+
+  {{ share(r.name ~ (' ' ~ r.amount_label if r.amount_label else '')) }}
+  <p class="meta">최종 수정 {{ r.modified or '-' }} · 금액은 지원 내용에서 자동으로 뽑은 '최대' 값이라 실제와 다를 수 있어요.</p>
+</article>
+
+{% if related %}
+<section>
+  <h2>이것도 같이 챙기세요</h2>
+  {{ grid(related) }}
+</section>
+{% endif %}
+{% endblock %}

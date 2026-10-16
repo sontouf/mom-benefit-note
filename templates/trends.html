@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ico, trend_card %}
+{% block title %}요즘 엄마들이 많이 이야기하는 지원금·육아 트렌드 | {{ site_name }}{% endblock %}
+{% block desc %}스레드와 맘카페에서 많이 공유되는 출산·육아·절약 주제를 골라, 실제로 신청할 수 있는 공공데이터 혜택과 함께 정리했어요.{% endblock %}
+{% block main %}
+<nav class="crumbs"><a href="{{ u('/') }}">홈</a> › 트렌드</nav>
+<h1 class="ih">{{ ico('chat', 40) }} 요즘 엄마들 관심사</h1>
+<p class="lead">스레드·맘카페에서 많이 이야기되는 주제를 사람이 직접 고르고, 각 주제마다 <strong>공공데이터로 확인된 실제 혜택</strong>을 붙였어요. 소문은 소문대로, 확인은 공공데이터로.</p>
+
+{% if bonus %}
+<a class="feature" href="{{ u('/trend/birth-bonus/') }}">
+  {{ ico('trophy', 56) }}
+  <div>
+    <p class="eyebrow">공공데이터로 직접 집계</p>
+    <h2>우리 동네 출산축하금, 전국에서 몇 등?</h2>
+    <p class="lead">1위 {{ bonus[0].sigungu }} {{ bonus[0].amount_label }} · 시군구별 순위 보기</p>
+  </div>
+</a>
+{% endif %}
+
+<div class="tgrid">{% for t in trends %}{{ trend_card(t) }}{% endfor %}</div>
+{% endblock %}
