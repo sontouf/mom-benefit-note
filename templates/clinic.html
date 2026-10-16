@@ -12,7 +12,8 @@
     <p class="lead">평일 밤 8시 이후나 토·일·공휴일에 진료하는 소아청소년과 <strong>{{ total | comma }}곳</strong></p>
   </div>
 </header>
-<p class="caution">⚠️ 진료시간은 병원 사정으로 바뀔 수 있어요. 출발 전에 꼭 전화로 확인하세요. 응급 상황이면 119 또는 응급실로 가세요.</p>
+<p class="caution">⚠️ 진료시간은 병원 사정으로 바뀔 수 있어요. 출발 전에 꼭 전화로 확인하세요.</p>
+{% if not sido %}{% include "_clinic_help.html" %}{% endif %}
 
 <section>
   <h2 class="ih">{{ ico('pin') }} 지역 고르기</h2>

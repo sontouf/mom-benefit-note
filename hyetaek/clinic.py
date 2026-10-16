@@ -7,6 +7,7 @@
 응답 필드: hpid, dutyName, dutyAddr, dutyTel1, dutyDivNam, wgs84Lat, wgs84Lon,
           dutyTime{1..8}s / dutyTime{1..8}c (1=월 … 7=일, 8=공휴일, HHMM)
 """
+import re
 import time
 import urllib.error
 import urllib.parse
@@ -79,10 +80,24 @@ def _fmt(v):
     return f"{v // 100:02d}:{v % 100:02d}"
 
 
+KIDS_NAME = re.compile(r"(소아|아동|어린이|키즈|아이)")
+SKIP_DIV = ("요양병원", "한방병원", "한의원", "치과", "정신병원")
+
+
+def is_pediatric(it):
+    """엄마들이 찾는 '소아과'만: 이름에 소아·아동·어린이가 있거나, 소아과가 있는 병원급."""
+    div, name = it.get("dutyDivNam", ""), it.get("dutyName", "")
+    if any(d in div for d in SKIP_DIV):
+        return False
+    return bool(KIDS_NAME.search(name)) or div in ("병원", "종합병원", "상급종합", "보건소")
+
+
 def normalize(items):
-    """야간 또는 주말·공휴일에 진료하는 곳만 남긴다."""
+    """소아과 중 야간 또는 주말·공휴일에 진료하는 곳만 남긴다."""
     out = []
     for it in items:
+        if not is_pediatric(it):
+            continue
         hours = []
         for i, day in enumerate(DAYS, 1):
             s, c = _hhmm(it.get(f"dutyTime{i}s")), _hhmm(it.get(f"dutyTime{i}c"))
