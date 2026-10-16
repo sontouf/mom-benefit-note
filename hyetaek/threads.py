@@ -168,4 +168,7 @@ def generate(site, drafts_dir):
             "local_images": [str(site.out / i) for i in p["images"]]} for p in posts]
     path = Path(drafts_dir) / f"{site.today.isoformat()}.json"
     path.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+    # 자동 게시 워크플로가 읽을 수 있도록 사이트에도 함께 올린다 (게시용 본문이라 공개돼도 무방)
+    public = [{k: v for k, v in d.items() if k != "local_images"} for d in out]
+    (card_dir / "drafts.json").write_text(json.dumps(public, ensure_ascii=False, indent=2), encoding="utf-8")
     return path, len(posts), ok

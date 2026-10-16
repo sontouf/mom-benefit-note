@@ -1,0 +1,37 @@
+name: threads-post
+
+on:
+  schedule:
+    - cron: "30 11 * * *"   # 매일 20:30 KST (엄마들이 스레드를 많이 보는 시간)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: threads-post
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 오늘의 카드뉴스 1개 게시
+        env:
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: python tools/auto_post.py
+      - name: 게시 기록 저장
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/threads_posted.json 2>/dev/null || exit 0
+          git diff --cached --quiet && exit 0
+          git commit -m "threads: $(TZ=Asia/Seoul date +%F) 게시 기록"
+          for i in 1 2 3; do git pull --rebase -X theirs origin main && git push && exit 0; sleep $((i * 5)); done
+          exit 1

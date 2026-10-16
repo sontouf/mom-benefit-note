@@ -230,6 +230,18 @@ class RunWiringTest(unittest.TestCase):
             api.fetch_all, run.fetch_extras = orig_fetch, orig_extras
 
 
+class AutoPostTest(unittest.TestCase):
+    def test_pick_rotation(self):
+        import sys
+        sys.path.insert(0, str(ROOT / "tools"))
+        import auto_post as a
+        drafts = [{"key": "stage-birth"}, {"key": "deadline"}, {"key": "trend-zero-won"}, {"key": "birth-bonus"}]
+        t = date(2026, 10, 18)
+        self.assertEqual(a.pick(drafts, [], t)["key"], "trend-zero-won")
+        self.assertEqual(a.pick(drafts, [{"date": "2026-10-15", "key": "trend-zero-won"}], t)["key"], "birth-bonus")
+        self.assertIsNone(a.pick(drafts, [{"date": "2026-10-18", "key": "x"}], t))  # 하루 1개
+
+
 class ClinicTest(unittest.TestCase):
     def test_parse_and_filter(self):
         from hyetaek import clinic
