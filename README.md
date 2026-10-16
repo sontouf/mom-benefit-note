@@ -68,6 +68,22 @@ python tools/post_threads.py drafts/2026-10-17.json --key birth-bonus
 2. Secret `DATA_GO_KR_KEY`, Variables `SITE_URL`, `BASE_PATH`(커스텀 도메인이면 비움), 선택으로 `SITE_NAME`, `CNAME`, `ADSENSE_CLIENT`
 3. Actions → `daily-update` → Run workflow. 이후 매일 06:00 KST에 수집, 빌드, 카드 생성, 배포가 자동으로 실행됩니다. 스레드 초안은 실행 결과의 `threads-drafts` 아티팩트로 내려받습니다.
 
+## 검색 노출·수익화 설정 (코드는 준비됨, 값만 넣으면 켜짐)
+GitHub 저장소 → Settings → Secrets and variables → Actions → **Variables** 에 넣으면 다음 자동 실행부터 반영됩니다.
+
+| 할 일 | 넣을 변수 | 얻는 곳 |
+|---|---|---|
+| 구글 검색 등록 | `GOOGLE_SITE_VERIFICATION` (meta 태그의 content 값) | [Search Console](https://search.google.com/search-console) → URL 접두어 → HTML 태그 방식. 등록 후 `sitemap.xml` 제출 |
+| 네이버 검색 등록 (엄마들은 네이버 검색 비중이 큼) | `NAVER_SITE_VERIFICATION` | [네이버 서치어드바이저](https://searchadvisor.naver.com) → 사이트 등록 → HTML 태그. 등록 후 `sitemap.xml`·`rss.xml` 제출 |
+| 방문 통계 | `GA_ID` (예: `G-XXXXXXX`) | [Google Analytics](https://analytics.google.com) |
+| 광고 | `ADSENSE_CLIENT` (예: `ca-pub-...`) | [AdSense](https://adsense.google.com). 넣으면 광고 코드와 `ads.txt` 가 자동 생성 |
+| 개인 도메인 (선택, 연 1~2만 원) | `CNAME`=도메인, `SITE_URL`=`https://도메인`, `BASE_PATH`=빈 값 | 도메인 구입 후 DNS에 GitHub Pages 연결 |
+
+이미 들어가 있는 것: 개인정보처리방침(`/privacy/`, AdSense 심사 필수), RSS(`/rss.xml`), 링크 미리보기 이미지(`static/og.png`, 다시 만들려면 `python tools/render_og.py`).
+
+## 로컬에서 수정할 때
+자동 실행이 매일 `data/` 를 커밋하므로, 수정 전에 반드시 `git pull --rebase` 를 먼저 하세요.
+
 ## 주의
 - 비공식 사이트임을 명시하고 원문 링크와 출처를 항상 표시합니다(템플릿에 반영됨).
 - 금액은 지원 내용 텍스트에서 자동으로 뽑은 '최대' 값입니다. 사업비, 대출, 3천만 원 초과 금액은 표시하지 않습니다.

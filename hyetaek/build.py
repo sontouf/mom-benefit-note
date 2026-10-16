@@ -77,6 +77,7 @@ class Site:
         self.base_path = os.environ.get("BASE_PATH", "").rstrip("/")
         self.site_name = os.environ.get("SITE_NAME", "엄마혜택노트")
         self.adsense = os.environ.get("ADSENSE_CLIENT", "")
+        self.repo_url = os.environ.get("REPO_URL", "https://github.com/sontouf/mom-benefit-note")
         self.urls = []
         self.env = Environment(
             loader=FileSystemLoader(ROOT / "templates"),
@@ -88,7 +89,10 @@ class Site:
         self.env.globals.update(
             u=self.u, site_name=self.site_name, adsense=self.adsense, dday=self.dday,
             today=self.today, stages=STAGE_INFO, stage_list=[STAGE_INFO[s[0]] for s in STAGES],
-            sido_short=SIDO_SHORT,
+            sido_short=SIDO_SHORT, site_root=self.base_url, repo_url=self.repo_url,
+            google_verify=os.environ.get("GOOGLE_SITE_VERIFICATION", ""),
+            naver_verify=os.environ.get("NAVER_SITE_VERIFICATION", ""),
+            ga_id=os.environ.get("GA_ID", ""),
         )
 
     # ---------- helpers ----------
@@ -233,9 +237,15 @@ class Site:
         self.write("/changes/", "changes.html", events=self._events_view(self.events[:300]))
         self.write("/find/", "find.html")
         self.write("/about/", "about.html")
+        self.write("/privacy/", "privacy.html")
         self.write("/404.html", "404.html", sitemap=False)
 
         self._write_find_data(open_recs)
+        self._write_rss(new_events, open_recs)
+        if self.adsense:
+            # AdSense 승인·수익 지급에 필요한 판매자 인증 파일
+            pub = self.adsense.replace("ca-", "")
+            (self.out / "ads.txt").write_text(f"google.com, {pub}, DIRECT, f08c47fec0942fa0\n", encoding="utf-8")
         self._write_sitemap()
         (self.out / "robots.txt").write_text(
             f"User-agent: *\nAllow: /\nSitemap: {self.base_url}{self.u('/sitemap.xml')}\n", encoding="utf-8")
@@ -304,6 +314,35 @@ class Site:
                          r["summary"][:70], inc if len(inc) < 5 else []])
         (self.out / "static" / "find.json").write_text(
             json.dumps(rows, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
+    def _write_rss(self, new_events, open_recs):
+        """새 혜택 RSS. 네이버 서치어드바이저에 RSS 로 제출하면 수집이 빨라진다."""
+        items = [(self.by_id[e["id"]], e["date"]) for e in new_events[:50]]
+        if len(items) < 20:  # 신규 이력이 적은 초기엔 최근 수정된 혜택으로 채운다
+            seen = {r["id"] for r, _ in items}
+            recent = sorted((r for r in open_recs if r["id"] not in seen and r["modified"]),
+                            key=lambda r: r["modified"], reverse=True)
+            items += [(r, None) for r in recent[:50 - len(items)]]
+
+        def pub(r, d):
+            raw = d or r["modified"][:8]
+            try:
+                dt = datetime.strptime(raw.replace("-", "")[:8], "%Y%m%d")
+            except ValueError:
+                dt = datetime.combine(self.today, datetime.min.time())
+            return dt.strftime("%a, %d %b %Y 06:00:00 +0900")
+
+        body = "".join(
+            f"<item><title>{escape(r['name'] + (' ' + r['amount_label'] if r['amount_label'] else ''))}</title>"
+            f"<link>{escape(self.base_url + self.u('/s/' + r['id'] + '/'))}</link>"
+            f"<guid>{escape(self.base_url + self.u('/s/' + r['id'] + '/'))}</guid>"
+            f"<description>{escape(r['summary'])}</description><pubDate>{pub(r, d)}</pubDate></item>"
+            for r, d in items)
+        (self.out / "rss.xml").write_text(
+            '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0"><channel>'
+            f"<title>{escape(self.site_name)} 새 혜택</title><link>{escape(self.base_url + self.u('/'))}</link>"
+            "<description>임신·출산·육아 지원금 신규·변경 소식</description><language>ko</language>"
+            f"{body}</channel></rss>\n", encoding="utf-8")
 
     def _write_sitemap(self):
         chunk = 40000

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}개인정보처리방침 | {{ site_name }}{% endblock %}
+{% block desc %}{{ site_name }}의 개인정보처리방침과 쿠키·광고 안내입니다.{% endblock %}
+{% block main %}
+<nav class="crumbs"><a href="{{ u('/') }}">홈</a> › 개인정보처리방침</nav>
+<h1>개인정보처리방침</h1>
+<div class="panel prose">
+<p>{{ site_name }}(이하 "사이트")은 회원가입이 없고, 이름·연락처 같은 개인정보를 직접 수집하지 않습니다.</p>
+
+<h2>1. 맞춤 찾기와 체크리스트</h2>
+<p>맞춤 찾기에 고른 정보(아이 단계, 지역, 소득 구간)는 이용자의 브라우저 안에서만 처리되며 서버로 전송·저장되지 않습니다. 체크리스트의 체크 상태는 이용자 기기의 브라우저 저장소(localStorage)에만 저장되며, 브라우저 데이터를 지우면 사라집니다.</p>
+
+<h2>2. 쿠키와 광고</h2>
+<p>사이트는 Google AdSense 등 제3자 광고를 게재할 수 있습니다. Google을 포함한 제3자 공급업체는 쿠키를 사용해 이용자의 이전 방문 기록을 바탕으로 광고를 게재할 수 있습니다. 이용자는 <a href="https://adssettings.google.com" rel="nofollow noopener" target="_blank">Google 광고 설정</a>에서 맞춤 광고를 끌 수 있습니다.</p>
+
+<h2>3. 방문 통계</h2>
+<p>서비스 개선을 위해 Google Analytics로 익명 방문 통계(페이지 조회수, 유입 경로, 기기 종류 등)를 수집할 수 있습니다. 이 정보로 개인을 식별하지 않습니다.</p>
+
+<h2>4. 외부 링크</h2>
+<p>정부24, 복지로, 스레드 등 외부 사이트로 이동하면 해당 사이트의 개인정보처리방침이 적용됩니다.</p>
+
+<h2>5. 문의</h2>
+<p>정보 오류 신고나 문의는 <a href="{{ repo_url }}/issues" rel="noopener" target="_blank">GitHub 이슈</a>로 남겨 주세요.</p>
+
+<p class="meta">시행일 {{ today.isoformat() }}</p>
+</div>
+{% endblock %}

@@ -55,6 +55,9 @@ jobs:
           SITE_NAME: ${{ vars.SITE_NAME }}
           ADSENSE_CLIENT: ${{ vars.ADSENSE_CLIENT }}
           CNAME: ${{ vars.CNAME }}
+          GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
+          NAVER_SITE_VERIFICATION: ${{ vars.NAVER_SITE_VERIFICATION }}
+          GA_ID: ${{ vars.GA_ID }}
           CHROME_BIN: /usr/bin/google-chrome
         run: python run.py cards
 
