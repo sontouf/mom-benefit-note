@@ -73,11 +73,36 @@ def og_image(url):
         return ""
 
 
+API_HUB = "https://naverapihub.apigw.ntruss.com/search/v1/{kind}"
+KAKAO = "https://dapi.kakao.com/v2/search/{kind}"
+
+
+def _http_json(url, headers):
+    with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=30) as r:
+        return json.load(r)
+
+
 def _call(kind, query, cid, secret):
+    """네이버 검색. cid 가 'hub:' 로 시작하면 NAVER API HUB(2026.8~ 신규 발급 키), 아니면 기존 개발자센터 키."""
+    if cid.startswith("hub:"):
+        url = API_HUB.format(kind=kind) + "?" + urllib.parse.urlencode(
+            {"query": query, "display": 10, "sort": "sim", "format": "json"})
+        return _http_json(url, {"X-NCP-APIGW-API-KEY-ID": cid[4:], "X-NCP-APIGW-API-KEY": secret}).get("items", [])
     url = API.format(kind=kind) + "?" + urllib.parse.urlencode({"query": query, "display": 10, "sort": "sim"})
-    req = urllib.request.Request(url, headers={"X-Naver-Client-Id": cid, "X-Naver-Client-Secret": secret})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return json.load(r).get("items", [])
+    return _http_json(url, {"X-Naver-Client-Id": cid, "X-Naver-Client-Secret": secret}).get("items", [])
+
+
+def _kakao(kind, query, key):
+    """카카오(다음) 블로그·카페 검색. 결과에 썸네일이 들어 있다."""
+    url = KAKAO.format(kind=kind) + "?" + urllib.parse.urlencode({"query": query, "size": 10, "sort": "accuracy"})
+    docs = _http_json(url, {"Authorization": f"KakaoAK {key}"}).get("documents", [])
+    out = []
+    for d in docs:
+        out.append({"title": d.get("title", ""), "link": d.get("url", ""), "description": d.get("contents", ""),
+                    "bloggername": d.get("blogname") or d.get("cafename") or "",
+                    "postdate": (d.get("datetime") or "")[:10].replace("-", ""),
+                    "thumbnail": d.get("thumbnail", "")})
+    return out
 
 
 def _relevant(item, core):
@@ -85,40 +110,54 @@ def _relevant(item, core):
     return core in text.replace(" ", "") and ("후기" in text or "신청" in text or "받았" in text or "받은" in text)
 
 
-def fetch(records, cache, cid, secret, today=None, limit=300):
-    """인기 순 records 상위 limit 개의 후기를 갱신해 cache(dict)를 돌려준다."""
+def fetch(records, cache, cid, secret, today=None, limit=300, kakao_key=None):
+    """인기 순 records 상위 limit 개의 후기를 갱신해 cache(dict)를 돌려준다.
+
+    cid/secret: 네이버(개발자센터 또는 'hub:'+API HUB 키). kakao_key: 카카오 REST API 키. 둘 중 있는 것만 쓴다.
+    """
     today = today or date.today()
     calls = 0
+    sources = []
+    if cid and secret:
+        sources += [("naver", "blog", "블로그"), ("naver", "cafearticle", "카페")]
+    if kakao_key:
+        sources += [("kakao", "blog", "블로그"), ("kakao", "cafe", "카페")]
     for r in records[:limit]:
         old = cache.get(r["id"])
         if old and (today - date.fromisoformat(old["fetched"])).days < REFRESH_DAYS:
             continue
-        if calls + 2 > MAX_CALLS:
+        if calls + len(sources) > MAX_CALLS:
             break
         name = clean_name(r["name"])
         core = core_name(name)
-        items = []
-        try:
-            for kind, src in (("blog", "블로그"), ("cafearticle", "카페")):
-                calls += 1
-                for it in _call(kind, f"{name} 후기", cid, secret):
-                    item = {"src": src, "title": _strip(it.get("title")), "link": it.get("link", ""),
-                            "desc": _strip(it.get("description"))[:120],
-                            "by": _strip(it.get("bloggername") or it.get("cafename")),
-                            "date": it.get("postdate", "")}
-                    if item["link"].startswith("http") and _relevant(item, core):
-                        items.append(item)
-                time.sleep(0.12)
-        except urllib.error.HTTPError as e:
-            if e.code in (401, 403):
-                raise RuntimeError("네이버 API 인증 실패 — NAVER_CLIENT_ID/SECRET 과 '검색' API 사용 설정을 확인하세요.") from e
-            if e.code == 429:
-                break
-            continue
+        items, seen = [], set()
+        for prov, kind, src in sources:
+            calls += 1
+            try:
+                raw = _call(kind, f"{name} 후기", cid, secret) if prov == "naver" else _kakao(kind, f"{name} 후기", kakao_key)
+            except urllib.error.HTTPError as e:
+                if e.code in (401, 403):
+                    raise RuntimeError(f"{'네이버' if prov == 'naver' else '카카오'} API 인증 실패 ({e.code}) — 키와 사용 설정을 확인하세요.") from e
+                if e.code == 429:
+                    return cache, calls
+                continue
+            except (urllib.error.URLError, TimeoutError):
+                continue
+            for it in raw:
+                item = {"src": src, "title": _strip(it.get("title")), "link": it.get("link", ""),
+                        "desc": _strip(it.get("description"))[:120],
+                        "by": _strip(it.get("bloggername") or it.get("cafename")),
+                        "date": it.get("postdate", "")}
+                if it.get("thumbnail", "").startswith("http"):
+                    item["thumb"] = it["thumbnail"].replace("http://", "https://", 1)
+                if item["link"].startswith("http") and item["link"] not in seen and _relevant(item, core):
+                    seen.add(item["link"])
+                    items.append(item)
+            time.sleep(0.12)
         items.sort(key=lambda x: x["date"], reverse=True)
         items = items[:6]
         for it in items:
-            if it["src"] == "블로그":
+            if it["src"] == "블로그" and not it.get("thumb"):
                 it["thumb"] = og_image(it["link"])
         cache[r["id"]] = {"fetched": today.isoformat(), "items": items}
     return cache, calls

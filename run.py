@@ -88,13 +88,16 @@ def _family(records):
 
 
 def fetch_reviews(records):
-    """네이버 블로그·카페 후기 (NAVER_CLIENT_ID/SECRET 이 있을 때만). 인기 혜택부터 7일마다 갱신."""
-    cid, secret = os.environ.get("NAVER_CLIENT_ID"), os.environ.get("NAVER_CLIENT_SECRET")
-    if not (cid and secret):
-        print("  후기: 건너뜀 — NAVER_CLIENT_ID/SECRET 없음 (검색 링크만 표시)")
+    """블로그·카페 후기. 네이버(API HUB 우선, 기존 개발자센터 키) / 카카오 중 키가 있는 것만. 7일마다 갱신."""
+    hub_id, hub_key = os.environ.get("NAVER_HUB_KEY_ID"), os.environ.get("NAVER_HUB_KEY")
+    cid, secret = (f"hub:{hub_id}", hub_key) if hub_id and hub_key else \
+        (os.environ.get("NAVER_CLIENT_ID"), os.environ.get("NAVER_CLIENT_SECRET"))
+    kakao = os.environ.get("KAKAO_REST_KEY")
+    if not ((cid and secret) or kakao):
+        print("  후기: 건너뜀 — 네이버/카카오 검색 키 없음 (검색 링크만 표시)")
         return
     try:
-        cache, calls = reviews.fetch(_family(records), _load(REVIEWS, {}), cid, secret, today_kst())
+        cache, calls = reviews.fetch(_family(records), _load(REVIEWS, {}), cid, secret, today_kst(), kakao_key=kakao)
     except RuntimeError as e:
         print(f"::warning title=네이버 후기 수집 실패::{e}")
         return

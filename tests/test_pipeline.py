@@ -164,6 +164,25 @@ class ReviewTest(unittest.TestCase):
             reviews._call, reviews.og_image = orig, orig_og
 
 
+class KakaoReviewTest(unittest.TestCase):
+    def test_kakao_with_thumbnail(self):
+        from hyetaek import reviews
+        orig_http, orig_og = reviews._http_json, reviews.og_image
+        reviews._http_json = lambda url, h: {"documents": [
+            {"title": "첫만남이용권 <b>후기</b>", "contents": "바로 받았어요", "url": "https://x.tistory.com/1",
+             "blogname": "맘블로그", "thumbnail": "http://img.kakao/1.jpg", "datetime": "2026-10-01T10:00:00.000+09:00"}]}
+        reviews.og_image = lambda u: self.fail("카카오 썸네일이 있으면 og:image 를 부르지 않는다")
+        try:
+            cache, calls = reviews.fetch([{"id": "A", "name": "첫만남이용권 지원"}], {}, None, None,
+                                         date(2026, 10, 17), kakao_key="k")
+        finally:
+            reviews._http_json, reviews.og_image = orig_http, orig_og
+        self.assertEqual(calls, 2)
+        it = cache["A"]["items"][0]
+        self.assertEqual(it["thumb"], "https://img.kakao/1.jpg")
+        self.assertEqual(it["date"], "20261001")
+
+
 class VideoTest(unittest.TestCase):
     def test_fetch_filters(self):
         from hyetaek import videos
