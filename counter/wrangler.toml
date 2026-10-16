@@ -9,4 +9,4 @@ ALLOWED_ORIGINS = "https://mombenefit.co.kr,https://www.mombenefit.co.kr"
 [[d1_databases]]
 binding = "DB"
 database_name = "mombenefit-counter"
-database_id = "REPLACE_WITH_DATABASE_ID"
+database_id = "65d2b9c7-5b65-4863-939f-f044b2a92a3f"
