@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "30 11 * * *"   # 매일 20:30 KST (엄마들이 스레드를 많이 보는 시간)
   workflow_dispatch:
+    inputs:
+      check_only:
+        description: "게시하지 않고 토큰만 점검"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -26,7 +31,7 @@ jobs:
           THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
           SITE_URL: ${{ vars.SITE_URL }}
           THREADS_TOKEN_ISSUED: ${{ vars.THREADS_TOKEN_ISSUED }}
-        run: python tools/auto_post.py
+        run: python tools/auto_post.py ${{ inputs.check_only && '--check' || '' }}
       - name: 게시 기록 저장
         run: |
           git config user.name "github-actions[bot]"

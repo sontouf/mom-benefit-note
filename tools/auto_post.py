@@ -50,6 +50,11 @@ def main():
     if not (os.environ.get("THREADS_USER_ID") and os.environ.get("THREADS_TOKEN")):
         print("THREADS_USER_ID/THREADS_TOKEN 없음 — 게시하지 않음")
         return
+    if "--check" in sys.argv:  # 게시 없이 토큰만 점검
+        me = post_threads.call("GET", "me", fields="id,username")
+        print(f"토큰 정상: @{me.get('username')} (id {me.get('id')})")
+        check_token_age(today_kst())
+        return
     site = os.environ.get("SITE_URL", "https://mombenefit.co.kr").rstrip("/")
     today = today_kst()
     try:
