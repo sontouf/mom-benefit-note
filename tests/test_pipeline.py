@@ -182,6 +182,35 @@ class VideoTest(unittest.TestCase):
             videos._call = orig
 
 
+class RunWiringTest(unittest.TestCase):
+    """수집 단계가 소아과·후기·영상을 모두 실제로 부르는지 (예전에 연결이 빠졌던 버그 방지)."""
+    def test_fetch_extras_calls_all(self):
+        import run
+        called = []
+        orig = (run.fetch_clinics, run.fetch_reviews, run.fetch_videos)
+        run.fetch_clinics = lambda sample=False: called.append("clinics")
+        run.fetch_reviews = lambda recs: called.append("reviews")
+        run.fetch_videos = lambda recs: called.append("videos")
+        try:
+            run.fetch_extras([], sample=False)
+        finally:
+            run.fetch_clinics, run.fetch_reviews, run.fetch_videos = orig
+        self.assertEqual(called, ["clinics", "reviews", "videos"])
+
+    def test_api_failure_keeps_old_data(self):
+        import os
+        import run
+        from hyetaek import api
+        orig_fetch, orig_extras = api.fetch_all, run.fetch_extras
+        api.fetch_all = lambda ep, key: (_ for _ in ()).throw(api.ApiError("인증 실패 (401)"))
+        run.fetch_extras = lambda recs, sample=False: None
+        os.environ["DATA_GO_KR_KEY"] = "x"
+        try:
+            run.fetch(sample=False)  # 예외 없이 끝나야 한다
+        finally:
+            api.fetch_all, run.fetch_extras = orig_fetch, orig_extras
+
+
 class ClinicTest(unittest.TestCase):
     def test_parse_and_filter(self):
         from hyetaek import clinic

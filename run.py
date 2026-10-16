@@ -47,10 +47,16 @@ def fetch(sample=False):
         if not key:
             sys.exit("DATA_GO_KR_KEY 환경변수가 없습니다. 공공데이터포털 '일반 인증키(Decoding)'를 넣어주세요.")
         raw = {}
-        for ep in api.ENDPOINTS:
-            raw[ep] = api.fetch_all(ep, key)
-            print(f"  {ep}: {len(raw[ep]):,}건")
-
+        try:
+            for ep in api.ENDPOINTS:
+                raw[ep] = api.fetch_all(ep, key)
+                print(f"  {ep}: {len(raw[ep]):,}건")
+        except api.ApiError as e:
+            # 혜택 API 장애·키 문제여도 사이트는 어제 데이터로 계속 배포한다 (GitHub 에 경고 표시)
+            msg = " ".join(str(e).split())
+            print(f"::warning title=공공서비스 API 실패::{msg} — 어제 데이터로 계속 진행합니다. 인증키를 확인하세요.")
+            fetch_extras(_load(SERVICES, []), sample)
+            return
     records = build_records(raw["serviceList"], raw["serviceDetail"], raw["supportConditions"])
     if not records:
         sys.exit("수집 결과가 0건입니다. 기존 데이터를 보존하고 중단합니다.")
@@ -66,7 +72,49 @@ def fetch(sample=False):
     _save_views(records)
     counts = {t: sum(e["type"] == t for e in events) for t in ("new", "updated", "removed")}
     print(f"서비스 {len(records):,}건 저장 · 신규 {counts['new']} / 변경 {counts['updated']} / 종료 {counts['removed']}")
+    fetch_extras(records, sample)
+
+
+def fetch_extras(records, sample=False):
+    """부가 데이터(소아과·후기·영상). 각각 실패해도 서로 막지 않는다."""
     fetch_clinics(sample)
+    if not sample:
+        fetch_reviews(records)
+        fetch_videos(records)
+
+
+def _family(records):
+    return sorted((r for r in records if stages_for(r)), key=lambda r: -r["views"])
+
+
+def fetch_reviews(records):
+    """네이버 블로그·카페 후기 (NAVER_CLIENT_ID/SECRET 이 있을 때만). 인기 혜택부터 7일마다 갱신."""
+    cid, secret = os.environ.get("NAVER_CLIENT_ID"), os.environ.get("NAVER_CLIENT_SECRET")
+    if not (cid and secret):
+        print("  후기: 건너뜀 — NAVER_CLIENT_ID/SECRET 없음 (검색 링크만 표시)")
+        return
+    try:
+        cache, calls = reviews.fetch(_family(records), _load(REVIEWS, {}), cid, secret, today_kst())
+    except RuntimeError as e:
+        print(f"::warning title=네이버 후기 수집 실패::{e}")
+        return
+    REVIEWS.write_text(json.dumps(cache, ensure_ascii=False, indent=0, sort_keys=True), encoding="utf-8")
+    print(f"  후기: API {calls}회 호출 · 후기 있는 혜택 {sum(1 for v in cache.values() if v['items'])}개")
+
+
+def fetch_videos(records):
+    """관련 유튜브 영상 (YOUTUBE_API_KEY 가 있을 때만). 하루 할당량 안에서 인기 혜택부터 14일마다 갱신."""
+    key = os.environ.get("YOUTUBE_API_KEY")
+    if not key:
+        print("  영상: 건너뜀 — YOUTUBE_API_KEY 없음 (유튜브 검색 링크만 표시)")
+        return
+    try:
+        cache, calls = videos.fetch(_family(records), _load(VIDEOS, {}), key, today_kst())
+    except RuntimeError as e:
+        print(f"::warning title=유튜브 영상 수집 실패::{e}")
+        return
+    VIDEOS.write_text(json.dumps(cache, ensure_ascii=False, indent=0, sort_keys=True), encoding="utf-8")
+    print(f"  영상: API {calls}회 호출 · 영상 있는 혜택 {sum(1 for v in cache.values() if v['items'])}개")
 
 
 def _save_views(records):
