@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ico, share %}
+{% set place = sido_short.get(sido, sido) ~ ' ' if sido else '' %}
+{% block title %}{{ place }}밤·주말 진료 소아과 ({{ total | comma }}곳) | {{ site_name }}{% endblock %}
+{% block desc %}{{ place }}평일 밤 8시 이후, 토·일·공휴일에 진료하는 소아청소년과 {{ total | comma }}곳. 국립중앙의료원 공공데이터로 매일 갱신합니다.{% endblock %}
+{% block main %}
+<nav class="crumbs"><a href="{{ u('/') }}">홈</a> › {% if sido %}<a href="{{ u('/clinic/') }}">밤·주말 소아과</a> › {{ sido_short.get(sido, sido) }}{% else %}밤·주말 소아과{% endif %}</nav>
+<header class="stage-head">
+  {{ ico('hospital', 72) }}
+  <div>
+    <h1>{{ place }}밤·주말 소아과</h1>
+    <p class="lead">평일 밤 8시 이후나 토·일·공휴일에 진료하는 소아청소년과 <strong>{{ total | comma }}곳</strong></p>
+  </div>
+</header>
+<p class="caution">⚠️ 진료시간은 병원 사정으로 바뀔 수 있어요. 출발 전에 꼭 전화로 확인하세요. 응급 상황이면 119 또는 응급실로 가세요.</p>
+
+<section>
+  <h2 class="ih">{{ ico('pin') }} 지역 고르기</h2>
+  <div class="chips">
+  {% for s, n, w in counts %}<a class="chip {{ 'on' if s == sido }}" href="{{ u('/clinic/' ~ s ~ '/') }}">{{ sido_short.get(s, s) }} <small>{{ n | comma }}</small></a>{% endfor %}
+  </div>
+</section>
+
+{% for sg, items in groups %}
+<section>
+  <h2>{{ sg }} <small class="count">{{ items | length }}곳</small></h2>
+  <div class="grid">
+  {% for c in items %}
+    <div class="card clinic">
+      <div class="card-foot top">{% for t in c.tags %}<span class="badge {{ 'hot' if t in ('일요일', '공휴일') }}">{{ t }}</span>{% endfor %}</div>
+      <h3>{{ c.name }}</h3>
+      <p class="sum">{{ c.addr }}</p>
+      <details>
+        <summary>요일별 진료시간</summary>
+        <table class="hours">{% for d, s, e in c.hours %}<tr><th>{{ d }}</th><td>{{ (s ~ ' ~ ' ~ e) if s else '휴진·정보 없음' }}</td></tr>{% endfor %}</table>
+      </details>
+      {% if c.tel %}<a class="btn ghost wide" href="tel:{{ c.tel }}">전화 {{ c.tel }}</a>{% endif %}
+    </div>
+  {% endfor %}
+  </div>
+</section>
+{% endfor %}
+
+{% if sido %}{{ share(place ~ '밤·주말 소아과 목록') }}{% endif %}
+<p class="meta">출처: 국립중앙의료원 「전국 병·의원 찾기 서비스」 (공공데이터포털) · 매일 아침 갱신</p>
+{% endblock %}

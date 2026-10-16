@@ -12,7 +12,7 @@ import os
 import sys
 from pathlib import Path
 
-from hyetaek import api, history, threads
+from hyetaek import api, clinic, history, threads
 from hyetaek.build import Site, today_kst
 from hyetaek.normalize import build_records
 
@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
 SERVICES = DATA / "services.json"
 EVENTS = DATA / "events.json"
+CLINICS = DATA / "clinics.json"
 
 
 def _dump_lines(path, items):
@@ -59,6 +60,26 @@ def fetch(sample=False):
     _dump_lines(EVENTS, history.merge(_load(EVENTS, []), events))
     counts = {t: sum(e["type"] == t for e in events) for t in ("new", "updated", "removed")}
     print(f"서비스 {len(records):,}건 저장 · 신규 {counts['new']} / 변경 {counts['updated']} / 종료 {counts['removed']}")
+    fetch_clinics(sample)
+
+
+def fetch_clinics(sample=False):
+    """밤·주말 소아과. 활용신청 전이거나 장애면 기존 데이터를 유지하고 넘어간다."""
+    try:
+        if sample:
+            _, items = clinic.parse((ROOT / "sample" / "clinics.xml").read_bytes())
+        else:
+            items = clinic.fetch_all(os.environ["DATA_GO_KR_KEY"])
+    except clinic.NotRegistered as e:
+        print(f"  소아과: 건너뜀 — {e}")
+        return
+    except Exception as e:  # noqa: BLE001 - 부가 기능이라 본 파이프라인을 막지 않는다
+        print(f"  소아과: 건너뜀 — {e}")
+        return
+    rows = clinic.normalize(items)
+    if rows:
+        _dump_lines(CLINICS, rows)
+    print(f"  소아과: 전체 {len(items):,}곳 중 밤·주말 진료 {len(rows):,}곳 저장")
 
 
 def build(out, cards=False):
@@ -66,7 +87,8 @@ def build(out, cards=False):
     if records is None:
         sys.exit("data/services.json 이 없습니다. 먼저 fetch 를 실행하세요.")
     records.sort(key=lambda r: (-r["views"], r["id"]))
-    site = Site(records, _load(EVENTS, []), out, trends=_load(DATA / "trends.json", None))
+    site = Site(records, _load(EVENTS, []), out, trends=_load(DATA / "trends.json", None),
+                clinics=_load(CLINICS, []))
     n = site.build()
     print(f"페이지 {n:,}개 생성 → {out}")
     if cards:

@@ -65,8 +65,9 @@ def enrich(records, extra_keywords=()):
 
 
 class Site:
-    def __init__(self, records, events, out_dir, today=None, trends=None):
+    def __init__(self, records, events, out_dir, today=None, trends=None, clinics=None):
         self.trends = trends or {"topics": []}
+        self.clinics = clinics or []
         self.records = enrich(records, trend_keywords(self.trends))
         self.by_id = {r["id"]: r for r in self.records}
         self.events = [e for e in events if e["id"] in self.by_id or e["type"] == "removed"]
@@ -170,7 +171,7 @@ class Site:
         new_events = [e for e in self.events if e["type"] == "new" and e["id"] in self.by_id]
         stage_counts = {s: len(by_stage[s]) for s in STAGE_INFO}
         sidos = [(s, len(by_sido[s])) for s in SIDO if by_sido[s]]
-        self.env.globals.update(stage_counts=stage_counts, sidos=sidos)
+        self.env.globals.update(stage_counts=stage_counts, sidos=sidos, has_clinics=bool(self.clinics))
 
         # 단계별 '꼭 챙길 것' = 전국 공통 혜택 중 많이 찾는 순
         must = {s: [r for r in national if s in r["stages"]][:8] for s in STAGE_INFO}
@@ -227,6 +228,8 @@ class Site:
             self.write("/trend/birth-bonus/", "bonus.html", bonus=bonus[:50], total=len(bonus))
         self.trend_cache, self.bonus_cache = trends, bonus
 
+        self._build_clinics()
+
         self.write("/changes/", "changes.html", events=self._events_view(self.events[:300]))
         self.write("/find/", "find.html")
         self.write("/about/", "about.html")
@@ -240,6 +243,21 @@ class Site:
             (self.out / "CNAME").write_text(os.environ["CNAME"] + "\n", encoding="utf-8")
         (self.out / ".nojekyll").write_text("", encoding="utf-8")
         return len(self.urls)
+
+    def _build_clinics(self):
+        if not self.clinics:
+            return
+        by_sido = defaultdict(list)
+        for c in self.clinics:
+            by_sido[c["sido"]].append(c)
+        counts = [(s, len(by_sido[s]), sum(c["sun"] or c["hol"] for c in by_sido[s])) for s in SIDO if by_sido[s]]
+        self.write("/clinic/", "clinic.html", sido=None, counts=counts, groups=[], total=len(self.clinics))
+        for sd, _, _ in counts:
+            groups = defaultdict(list)
+            for c in by_sido[sd]:
+                groups[c["sigungu"] or "기타"].append(c)
+            self.write(f"/clinic/{sd}/", "clinic.html", sido=sd, counts=counts,
+                       groups=sorted(groups.items()), total=len(by_sido[sd]))
 
     def _build_trends(self, open_recs):
         out = []

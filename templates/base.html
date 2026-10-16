@@ -26,6 +26,7 @@
     <a class="logo" href="{{ u('/') }}"><span class="logo-dot"></span>{{ site_name }}</a>
     <nav class="top-nav">
       <a href="{{ u('/find/') }}">맞춤 찾기</a>
+      {% if has_clinics %}<a href="{{ u('/clinic/') }}">밤 소아과</a>{% endif %}
       <a href="{{ u('/deadline/') }}">마감 임박</a>
       <a href="{{ u('/region/') }}">우리 동네</a>
     </nav>

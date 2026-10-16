@@ -126,5 +126,25 @@ class MomTest(unittest.TestCase):
         self.assertEqual(stages_for(rec), [])
 
 
+class ClinicTest(unittest.TestCase):
+    def test_parse_and_filter(self):
+        from hyetaek import clinic
+        total, items = clinic.parse((ROOT / "sample" / "clinics.xml").read_bytes())
+        self.assertEqual(total, 3)
+        rows = clinic.normalize(items)
+        names = [r["name"] for r in rows]
+        self.assertEqual(len(rows), 2)  # 낮에만 여는 곳 제외
+        self.assertTrue(any("해님" in n for n in names))
+        haenim = next(r for r in rows if "해님" in r["name"])
+        self.assertEqual(haenim["tags"], ["평일 21:00까지", "토요일", "일요일"])
+
+    def test_not_registered(self):
+        from hyetaek import clinic
+        xml = b"<OpenAPI_ServiceResponse><cmmMsgHeader><errMsg>SERVICE_KEY_IS_NOT_REGISTERED_ERROR</errMsg>" \
+              b"<returnReasonCode>30</returnReasonCode></cmmMsgHeader></OpenAPI_ServiceResponse>"
+        with self.assertRaises(clinic.NotRegistered):
+            clinic.parse(xml)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -14,6 +14,7 @@
 | `/trend/birth-bonus/` | 시군구 출산축하금 순위 (공공데이터에서 직접 집계한 고유 콘텐츠) |
 | `/region/…` | 시도·시군구별 우리 동네 혜택 |
 | `/find/` | 30초 맞춤 찾기 (브라우저 안에서만 처리, 개인정보 전송 없음) |
+| `/clinic/` · `/clinic/{시도}/` | 밤 8시 이후·주말·공휴일 진료 소아청소년과 (국립중앙의료원 API, 활용신청 후 자동 활성화) |
 | `/deadline/`, `/changes/` | 마감 D-day, 매일 신규·변경 기록 |
 | `/cards/{날짜}/…png` | 스레드 카드뉴스 이미지 (1080×1350) |
 
@@ -42,6 +43,25 @@ python -m unittest discover -s tests
 
 - 스레드 초안은 `drafts/{날짜}.json` 에 저장됩니다. 본문, 첫 댓글(링크·출처), 이미지 경로가 들어 있습니다.
 - **자동 게시는 하지 않습니다.** 사람이 검수한 뒤 올리세요. 자동 생성 글을 그대로 대량 게시하면 스팸으로 처리될 위험이 있습니다.
+
+## 추가 공공데이터 (활용신청 필요)
+같은 인증키로 쓰려면 공공데이터포털에서 데이터셋마다 **활용신청**을 해야 합니다(자동승인, 무료). 신청 전에는 해당 기능만 건너뛰고 나머지는 정상 동작합니다.
+
+| 기능 | 데이터셋 | 상태 |
+|---|---|---|
+| 지원금 전체 | [행정안전부_대한민국 공공서비스(혜택) 정보](https://www.data.go.kr/data/15113968/openapi.do) | 사용 중 |
+| 밤·주말 소아과 | [국립중앙의료원_전국 병·의원 찾기 서비스](https://www.data.go.kr/data/15000736/openapi.do) | 코드 준비 완료, 활용신청 대기 |
+| 어린이제품 리콜 (후보) | [국가기술표준원_제품 안전인증 및 리콜 정보](https://www.data.go.kr/data/15116894/openapi.do) | 명세 확인 후 추가 예정 |
+
+## 스레드 게시 (검수 후 1건씩)
+```bash
+export THREADS_USER_ID=...  THREADS_TOKEN=...   # Meta 개발자 앱(Threads API)에서 발급
+python tools/post_threads.py drafts/2026-10-17.json --list
+python tools/post_threads.py drafts/2026-10-17.json --key birth-bonus
+```
+- 본문, 첫 댓글, 이미지를 보여준 뒤 `y` 를 입력해야 게시합니다. 카드 캐러셀을 올리고 링크·출처는 첫 댓글로 답니다.
+- 이미지는 배포된 사이트의 공개 URL이어야 합니다(`SITE_URL` 설정 필수).
+- 하루 1~2개 정도로 간격을 두세요. 자동 대량 게시는 일부러 지원하지 않습니다.
 
 ## 배포 (GitHub Actions + Pages, 무료)
 1. public 저장소에 push → Settings → Pages → Source: **GitHub Actions**

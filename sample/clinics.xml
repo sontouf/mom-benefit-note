@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 국립중앙의료원 병·의원 찾기 응답 형식을 흉내 낸 예시 (가상의 의원) -->
+<response>
+  <header><resultCode>00</resultCode><resultMsg>NORMAL SERVICE.</resultMsg></header>
+  <body>
+    <items>
+      <item>
+        <hpid>SAMPLE01</hpid><dutyName>[샘플] 해님소아청소년과의원</dutyName>
+        <dutyAddr>서울특별시 강남구 테헤란로 1</dutyAddr><dutyTel1>02-000-0001</dutyTel1><dutyDivNam>의원</dutyDivNam>
+        <wgs84Lat>37.5</wgs84Lat><wgs84Lon>127.0</wgs84Lon>
+        <dutyTime1s>0900</dutyTime1s><dutyTime1c>2100</dutyTime1c>
+        <dutyTime2s>0900</dutyTime2s><dutyTime2c>2100</dutyTime2c>
+        <dutyTime3s>0900</dutyTime3s><dutyTime3c>1800</dutyTime3c>
+        <dutyTime4s>0900</dutyTime4s><dutyTime4c>1800</dutyTime4c>
+        <dutyTime5s>0900</dutyTime5s><dutyTime5c>1800</dutyTime5c>
+        <dutyTime6s>0900</dutyTime6s><dutyTime6c>1300</dutyTime6c>
+        <dutyTime7s>1000</dutyTime7s><dutyTime7c>1500</dutyTime7c>
+      </item>
+      <item>
+        <hpid>SAMPLE02</hpid><dutyName>[샘플] 별빛아동병원</dutyName>
+        <dutyAddr>경기도 수원시 팔달구 1</dutyAddr><dutyTel1>031-000-0002</dutyTel1><dutyDivNam>병원</dutyDivNam>
+        <dutyTime1s>0830</dutyTime1s><dutyTime1c>2300</dutyTime1c>
+        <dutyTime5s>0830</dutyTime5s><dutyTime5c>2300</dutyTime5c>
+        <dutyTime8s>0900</dutyTime8s><dutyTime8c>1800</dutyTime8c>
+      </item>
+      <item>
+        <hpid>SAMPLE03</hpid><dutyName>[샘플] 낮에만여는의원</dutyName>
+        <dutyAddr>부산광역시 해운대구 1</dutyAddr><dutyTel1>051-000-0003</dutyTel1><dutyDivNam>의원</dutyDivNam>
+        <dutyTime1s>0900</dutyTime1s><dutyTime1c>1800</dutyTime1c>
+      </item>
+    </items>
+    <numOfRows>10</numOfRows><pageNo>1</pageNo><totalCount>3</totalCount>
+  </body>
+</response>

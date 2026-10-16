@@ -17,6 +17,17 @@
   {{ stage_tiles() }}
 </section>
 
+{% if has_clinics %}
+<a class="feature" href="{{ u('/clinic/') }}">
+  {{ ico('hospital', 56) }}
+  <div>
+    <p class="eyebrow">아이가 밤에 아플 때</p>
+    <h2>지금 우리 동네 밤·주말 소아과</h2>
+    <p class="lead">평일 밤 8시 이후, 토·일·공휴일에 진료하는 소아청소년과만 모았어요.</p>
+  </div>
+</a>
+{% endif %}
+
 {% if trends %}
 <section>
   <div class="sec-head"><h2 class="ih">{{ ico('chat') }} 요즘 엄마들이 많이 이야기하는 것</h2><a href="{{ u('/trend/') }}">트렌드 전체</a></div>
