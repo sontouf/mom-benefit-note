@@ -46,18 +46,18 @@
       if (!kids.length || g.getBoundingClientRect().top < vh * 0.9) return; // 첫 화면은 손대지 않는다
       kids.forEach(hide);
       M.inView(g, function () {
-        show(kids, { opacity: [0, 1], transform: ["translateY(14px)", "none"] },
+        show(kids, { opacity: [0, 1], y: [14, 0] },
           { duration: 0.5, ease: EASE, delay: M.stagger(0.04, { startDelay: 0.05 }) });
       }, { amount: 0.1 });
     });
     $$("[data-reveal]").forEach(function (el, i) {
       if (el.getBoundingClientRect().top < vh) {
         // 첫 화면: 투명도는 그대로 두고 살짝 떠오르는 움직임만
-        M.animate(el, { transform: ["translateY(8px)", "none"] }, { duration: 0.6, ease: EASE, delay: 0.05 * i });
+        M.animate(el, { y: [8, 0] }, { duration: 0.6, ease: EASE, delay: 0.05 * i });
       } else {
         hide(el);
         M.inView(el, function () {
-          show([el], { opacity: [0, 1], transform: ["translateY(16px)", "none"] }, { duration: 0.6, ease: EASE });
+          show([el], { opacity: [0, 1], y: [16, 0] }, { duration: 0.6, ease: EASE });
         });
       }
     });
@@ -89,7 +89,7 @@
             b.tabIndex = on ? 0 : -1;
             if (panel) panel.hidden = !on;
             if (on && panel && animOK) {
-              M.animate($$("li, .empty", panel), { opacity: [0, 1], transform: ["translateX(8px)", "none"] },
+              M.animate($$("li, .empty", panel), { opacity: [0, 1], x: [8, 0] },
                 { duration: 0.35, ease: EASE, delay: M.stagger(0.025) });
               $$("[data-bar]", panel).forEach(function (b2) {
                 var w = b2.style.width;
@@ -128,7 +128,7 @@
   var rows = null;
   function loadRows() {
     if (rows) return Promise.resolve(rows);
-    return fetch(MB.data).then(function (r) { return r.json(); }).then(function (d) {
+    return fetch(MB.data).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) {
       rows = d.map(function (r) { return { r: r, n: r[1].replace(/\s/g, ""), c: chosung(r[1].replace(/\s/g, "")) }; });
       return rows;
     });
@@ -138,16 +138,19 @@
     var layer = $("#search"), input = $("#q"), list = $("#search-results");
     if (!layer) return;
     var lastFocus = null;
-    function open() {
+    function open(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (!layer.hidden) { input.focus(); return; }
       lastFocus = document.activeElement;
       layer.hidden = false;
       document.body.classList.add("no-scroll");
+      // 아이폰 사파리는 터치 이벤트 안에서 '바로' focus 해야 키보드가 뜬다 (setTimeout 금지)
+      try { input.focus({ preventScroll: true }); } catch (err) { input.focus(); }
       if (animOK) {
-        M.animate(layer, { opacity: [0, 1] }, { duration: 0.2 });
-        M.animate($(".search-panel", layer), { transform: ["translateY(-12px) scale(.98)", "none"], opacity: [0, 1] },
+        M.animate($(".search-panel", layer), { y: [-12, 0], scale: [0.98, 1] },
           { type: "spring", stiffness: 420, damping: 32 });
       }
-      setTimeout(function () { input.focus(); }, 30);
+      if (input.value) render(input.value);
       loadRows();
     }
     function close() {
@@ -155,11 +158,15 @@
       document.body.classList.remove("no-scroll");
       if (lastFocus) lastFocus.focus();
     }
+    var seq = 0;
     function render(q) {
-      list.innerHTML = "";
+      var my = ++seq;
       q = q.trim().replace(/\s/g, "");
-      if (!q) return;
+      if (!q) { list.innerHTML = ""; return; }
+      if (!rows) list.innerHTML = '<li class="none">혜택 목록을 불러오는 중…</li>';
       loadRows().then(function (rs) {
+        if (my !== seq) return; // 더 최근 입력이 있으면 버린다
+        list.innerHTML = "";
         var cho = isChosungOnly(q);
         var hits = rs.filter(function (x) { return cho ? x.c.indexOf(q) >= 0 : x.n.indexOf(q) >= 0; })
           .sort(function (a, b) {
@@ -181,12 +188,17 @@
           m.textContent = (r[5] ? r[5] + " · " : "") + (r[3] || r[2] || "전국");
           a.appendChild(t); a.appendChild(m); li.appendChild(a); list.appendChild(li);
         });
-        if (animOK) M.animate($$("li", list).slice(0, 12), { opacity: [0, 1], transform: ["translateY(6px)", "none"] },
+        if (animOK) M.animate($$("li", list).slice(0, 12), { y: [6, 0] },
           { duration: 0.25, delay: M.stagger(0.02) });
+      }).catch(function () {
+        if (my === seq) list.innerHTML = '<li class="none">목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</li>';
       });
     }
     var timer;
-    input.addEventListener("input", function () { clearTimeout(timer); timer = setTimeout(function () { render(input.value); }, 120); });
+    input.addEventListener("input", function () { clearTimeout(timer); timer = setTimeout(function () { render(input.value); }, 100); });
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { var a = $("#search-results a"); if (a) { e.preventDefault(); location.href = a.href; } }
+    });
     $$("[data-search-open]").forEach(function (b) { b.addEventListener("click", open); });
     $$("[data-search-close]").forEach(function (b) { b.addEventListener("click", close); });
     $$("[data-q]", layer).forEach(function (b) {
@@ -208,7 +220,7 @@
       var show = !es[0].isIntersecting && es[0].boundingClientRect.top < 0;
       if (show === bar.classList.contains("show")) return;
       bar.classList.toggle("show", show);
-      if (animOK) M.animate(bar, { transform: show ? ["translateY(110%)", "none"] : ["none", "translateY(110%)"] },
+      if (animOK) M.animate(bar, { y: show ? ["110%", "0%"] : ["0%", "110%"] },
         { type: "spring", stiffness: 380, damping: 34 });
     }).observe(anchor);
   }
@@ -267,21 +279,25 @@
       $$("[data-menu-open]").forEach(function (b) { b.setAttribute("aria-expanded", "true"); });
       if (animOK) {
         M.animate(layer, { opacity: [0, 1] }, { duration: 0.2 });
-        M.animate(sheet, { transform: ["translateX(100%)", "none"] }, { type: "spring", stiffness: 380, damping: 36 });
-        M.animate($$(".menu-sec > a, .menu-grid a", sheet), { transform: ["translateX(24px)", "none"] },
+        M.animate(sheet, { x: ["100%", "0%"] }, { type: "spring", stiffness: 380, damping: 36 });
+        M.animate($$(".menu-sec > a, .menu-grid a", sheet), { x: [24, 0] },
           { duration: 0.35, delay: M.stagger(0.02, { startDelay: 0.08 }) });
       }
       setTimeout(function () { var x = $(".menu-x", layer); if (x) x.focus(); }, 30);
     }
     function close() {
-      var done = function () { layer.hidden = true; document.body.classList.remove("no-scroll"); };
+      var done = function () {
+        layer.hidden = true;
+        if (!$("#search") || $("#search").hidden) document.body.classList.remove("no-scroll");
+      };
       $$("[data-menu-open]").forEach(function (b) { b.setAttribute("aria-expanded", "false"); });
       if (animOK) {
-        M.animate(sheet, { transform: "translateX(100%)" }, { duration: 0.25, ease: EASE });
+        M.animate(sheet, { x: "100%" }, { duration: 0.25, ease: EASE });
         var a = M.animate(layer, { opacity: 0 }, { duration: 0.25 });
         (a.finished || Promise.resolve()).then(function () { done(); layer.style.opacity = ""; sheet.style.transform = ""; });
       } else done();
-      if (last && last.focus) last.focus();
+      var searchOpen = $("#search") && !$("#search").hidden;
+      if (!searchOpen && last && last.focus) last.focus(); // 메뉴에서 검색을 연 경우 포커스를 뺏지 않는다
     }
     $$("[data-menu-open]").forEach(function (b) { b.addEventListener("click", open); });
     $$("[data-menu-close]").forEach(function (b) { b.addEventListener("click", function (e) { if (b.tagName === "A" && b.getAttribute("href") === "#") e.preventDefault(); close(); }); });
@@ -303,9 +319,9 @@
       var dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist - 40;
       (function (el) {
         var a = M.animate(el, {
-          transform: ["translate(" + (x - 14) + "px," + (y - 14) + "px) scale(.2)",
+          transform: ["translate(" + (x - 14) + "px," + (y - 14) + "px) scale(.2) rotate(0deg)",
                       "translate(" + (x - 14 + dx) + "px," + (y - 14 + dy) + "px) scale(" + size + ") rotate(" + (Math.random() * 60 - 30) + "deg)",
-                      "translate(" + (x - 14 + dx * 1.1) + "px," + (y - 14 + dy + 60) + "px) scale(" + size * 0.8 + ")"],
+                      "translate(" + (x - 14 + dx * 1.1) + "px," + (y - 14 + dy + 60) + "px) scale(" + size * 0.8 + ") rotate(0deg)"],
           opacity: [1, 1, 0],
         }, { duration: 1.1 + Math.random() * 0.4, ease: EASE });
         (a.finished || Promise.resolve()).then(function () { el.remove(); });

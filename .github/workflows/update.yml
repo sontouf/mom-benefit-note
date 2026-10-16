@@ -65,6 +65,25 @@ jobs:
           CHROME_BIN: /usr/bin/google-chrome
         run: python run.py cards
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: UI 테스트 (데스크톱·안드로이드 크롬, 아이폰 사파리) — 실패하면 배포 중단
+        working-directory: tests/ui
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium webkit
+          npx playwright test
+
+      - name: UI 테스트 리포트 보관
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-report
+          path: tests/ui/playwright-report/
+          retention-days: 7
+
       - name: 스레드 게시글 초안 보관
         uses: actions/upload-artifact@v4
         with:
