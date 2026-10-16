@@ -40,16 +40,58 @@
     <nav class="top-nav" aria-label="주요 메뉴">
       <a href="{{ u('/find/') }}">맞춤 찾기</a>
       <a href="{{ u('/ranking/') }}">인기 랭킹</a>
-      {% if has_clinics %}<a href="{{ u('/clinic/') }}">밤 소아과</a>{% endif %}
+      <a href="{{ u('/clinic/') }}">소아과·응급</a>
       <a href="{{ u('/trend/') }}">트렌드</a>
-      <a href="{{ u('/region/') }}">우리 동네</a>
+      <a href="{{ u('/youtube/') }}">유튜브</a>
     </nav>
     <button class="search-btn" type="button" data-search-open aria-label="혜택 검색">
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
       <span>혜택 검색</span>
     </button>
+    <button class="menu-btn" type="button" data-menu-open aria-label="전체 메뉴" aria-controls="menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </div>
+  <div class="progress" aria-hidden="true"><i data-progress></i></div>
 </header>
+
+<div class="menu-layer" id="menu" hidden>
+  <aside class="menu-sheet" role="dialog" aria-modal="true" aria-label="전체 메뉴">
+    <div class="menu-top">
+      <a class="logo" href="{{ u('/') }}"><span class="logo-dot"></span>{{ site_name }}</a>
+      <button type="button" class="menu-x" data-menu-close aria-label="메뉴 닫기">✕</button>
+    </div>
+    <img class="menu-deco" src="{{ u('/static/emoji/teddy.png') }}" alt="" width="88" height="88" aria-hidden="true">
+    <nav class="menu-sec" aria-label="혜택 찾기">
+      <p>혜택 찾기</p>
+      <a href="{{ u('/find/') }}"><img src="{{ u('/static/emoji/check.png') }}" alt="" width="28" height="28">30초 맞춤 찾기</a>
+      <a href="#" data-search-open data-menu-close><img src="{{ u('/static/emoji/bulb.png') }}" alt="" width="28" height="28">혜택 검색</a>
+      <a href="{{ u('/ranking/') }}"><img src="{{ u('/static/emoji/trophy.png') }}" alt="" width="28" height="28">인기·급상승 랭킹</a>
+      <a href="{{ u('/deadline/') }}"><img src="{{ u('/static/emoji/clock.png') }}" alt="" width="28" height="28">마감 임박</a>
+      <a href="{{ u('/changes/') }}"><img src="{{ u('/static/emoji/new.png') }}" alt="" width="28" height="28">신규·변경 기록</a>
+    </nav>
+    <nav class="menu-sec" aria-label="아이 단계별">
+      <p>아이 단계별</p>
+      <div class="menu-grid">
+      {% for s in stage_list %}{% if stage_counts.get(s.slug) %}
+        <a href="{{ u('/stage/' ~ s.slug ~ '/') }}"><img src="{{ u('/static/emoji/' ~ s.slug ~ '.png') }}" alt="" width="32" height="32">{{ s.name }}</a>
+      {% endif %}{% endfor %}
+      </div>
+    </nav>
+    <nav class="menu-sec" aria-label="엄마 정보">
+      <p>엄마 정보</p>
+      <a href="{{ u('/clinic/') }}"><img src="{{ u('/static/emoji/moon.png') }}" alt="" width="28" height="28">밤·주말 소아과 · 응급</a>
+      <a href="{{ u('/youtube/') }}"><img src="{{ u('/static/emoji/tv.png') }}" alt="" width="28" height="28">아이랑·엄마랑 유튜브</a>
+      <a href="{{ u('/trend/') }}"><img src="{{ u('/static/emoji/chat.png') }}" alt="" width="28" height="28">요즘 엄마들 관심사</a>
+      <a href="{{ u('/trend/birth-bonus/') }}"><img src="{{ u('/static/emoji/gift.png') }}" alt="" width="28" height="28">출산축하금 동네 순위</a>
+    </nav>
+    <nav class="menu-sec" aria-label="우리 동네">
+      <p>우리 동네</p>
+      <div class="chips">{% for s, n in sidos %}<a class="chip" href="{{ u('/region/' ~ s ~ '/') }}">{{ sido_short[s] }}</a>{% endfor %}</div>
+    </nav>
+    <p class="menu-foot"><a href="{{ u('/about/') }}">사이트 소개</a> · <a href="{{ u('/privacy/') }}">개인정보처리방침</a></p>
+  </aside>
+</div>
 
 <div class="search-layer" id="search" hidden>
   <div class="search-panel" role="dialog" aria-modal="true" aria-label="혜택 검색">
@@ -73,12 +115,8 @@
   <a href="{{ u('/') }}" class="{{ 'on' if cur == '/' }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>홈</a>
   <a href="{{ u('/find/') }}" class="{{ 'on' if cur.startswith('/find') }}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>맞춤 찾기</a>
   <a href="{{ u('/ranking/') }}" class="{{ 'on' if cur.startswith('/ranking') }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V11M12 21V4M19 21v-7"/></svg>랭킹</a>
-  {% if has_clinics %}
-  <a href="{{ u('/clinic/') }}" class="{{ 'on' if cur.startswith('/clinic') }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>밤 소아과</a>
-  {% else %}
-  <a href="{{ u('/trend/') }}" class="{{ 'on' if cur.startswith('/trend') }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.4 5.6L20 9.3l-4.3 3.9 1.2 5.8L12 16l-4.9 3 1.2-5.8L4 9.3l5.6-.7z"/></svg>트렌드</a>
-  {% endif %}
-  <a href="{{ u('/region/') }}" class="{{ 'on' if cur.startswith('/region') or cur.startswith('/stage') }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>우리 동네</a>
+  <a href="{{ u('/clinic/') }}" class="{{ 'on' if cur.startswith('/clinic') }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>소아과</a>
+  <button type="button" data-menu-open aria-label="전체 메뉴"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>메뉴</button>
 </nav>
 
 <footer class="foot">
@@ -91,5 +129,6 @@
 <script src="https://cdn.jsdelivr.net/npm/motion@13.5.1/dist/motion.js" defer></script>
 <script src="{{ u('/static/app.js') }}" defer></script>
 <script src="{{ u('/static/ui.js') }}" defer></script>
+<button class="to-top" type="button" data-to-top aria-label="맨 위로" hidden>↑</button>
 </body>
 </html>

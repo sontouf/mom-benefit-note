@@ -47,7 +47,7 @@
 {% macro stage_tiles() %}
 <div class="tiles">
 {% for s in stage_list %}{% if stage_counts.get(s.slug) %}
-  <a class="tile" href="{{ u('/stage/' ~ s.slug ~ '/') }}">
+  <a class="tile pastel-{{ loop.index0 % 5 }}" href="{{ u('/stage/' ~ s.slug ~ '/') }}">
     <img class="ico3d" src="{{ u('/static/emoji/' ~ s.slug ~ '.png') }}" alt="" width="44" height="44" loading="lazy">
     <strong>{{ s.name }}</strong>
     <small>{{ stage_counts[s.slug] | comma }}건</small>

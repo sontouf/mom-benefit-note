@@ -67,7 +67,8 @@ def enrich(records, extra_keywords=()):
 
 class Site:
     def __init__(self, records, events, out_dir, today=None, trends=None, clinics=None, views_history=None,
-                 reviews=None, videos=None):
+                 reviews=None, videos=None, channels=None):
+        self.channels = channels or {"channels": []}
         self.reviews = reviews or {}
         self.videos = videos or {}
         self.views_history = views_history or {}
@@ -181,7 +182,9 @@ class Site:
         new_events = [e for e in self.events if e["type"] == "new" and e["id"] in self.by_id]
         stage_counts = {s: len(by_stage[s]) for s in STAGE_INFO}
         sidos = [(s, len(by_sido[s])) for s in SIDO if by_sido[s]]
-        self.env.globals.update(stage_counts=stage_counts, sidos=sidos, has_clinics=bool(self.clinics))
+        self.env.globals.update(stage_counts=stage_counts, sidos=sidos, has_clinics=True,
+                                has_clinic_data=bool(self.clinics),
+                                kid_channels=[c for c in self.channels.get("channels", []) if c["cat"] == "kids"])
 
         # 단계별 '꼭 챙길 것' = 전국 공통 혜택 중 많이 찾는 순
         must = {s: [r for r in national if s in r["stages"]][:8] for s in STAGE_INFO}
@@ -195,6 +198,7 @@ class Site:
         }
         self.write("/ranking/", "ranking.html", rk=rk)
         self.write("/", "index.html", trends=self._build_trends(open_recs)[:6], rk=rk,
+                   chans=self.channels.get("channels", []),
                    soon=soon[:6], soon_total=len(soon),
                    new=[self.by_id[e["id"]] for e in new_events[:6]],
                    money=self.top_money(national, 6),
@@ -250,6 +254,9 @@ class Site:
         self.trend_cache, self.bonus_cache = trends, bonus
 
         self._build_clinics()
+        chans = self.channels.get("channels", [])
+        if chans:
+            self.write("/youtube/", "youtube.html", chans=chans, checked=self.channels.get("checked"))
 
         self.write("/changes/", "changes.html", events=self._events_view(self.events[:300]))
         self.write("/find/", "find.html")
@@ -299,6 +306,9 @@ class Site:
 
     def _build_clinics(self):
         if not self.clinics:
+            # 병·의원 데이터가 없어도 '아이가 아플 때' 공식 안내 페이지는 항상 제공한다
+            docs = [c for c in self.channels.get("channels", []) if c["cat"] == "parent"][:4]
+            self.write("/clinic/", "clinic_guide.html", docs=docs)
             return
         by_sido = defaultdict(list)
         for c in self.clinics:

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ico, share %}
+{% block title %}아이랑 보는 유튜브 · 엄마가 보는 육아 채널 추천 | {{ site_name }}{% endblock %}
+{% block desc %}핑크퐁·뽀로로·베베핀 같은 아이 인기 채널과 소아과 전문의·육아 전문가 채널을 한곳에 모았어요. 구독자 수는 {{ checked }} 기준입니다.{% endblock %}
+{% block main %}
+<nav class="crumbs"><a href="{{ u('/') }}">홈</a> › 유튜브 채널</nav>
+<header class="stage-head deco-head">
+  {{ ico('tv', 72) }}
+  <div>
+    <p class="eyebrow">엄마들이 많이 보는 채널 모음</p>
+    <h1>아이랑, 엄마랑 보는 유튜브</h1>
+  </div>
+</header>
+{% set groups = [("parent", "엄마가 보는 육아·건강 정보", "소아과 전문의와 육아 전문가가 직접 알려줘요", "stethoscope"),
+                 ("kids", "아이랑 같이 보는 인기 채널", "구독자 많은 국내 공식 키즈 채널", "teddy"),
+                 ("gov", "정부가 직접 설명하는 제도", "지원금·제도 공식 설명 영상", "news")] %}
+{% for key, title, sub, icon in groups %}
+{% set items = chans | selectattr("cat", "equalto", key) | list %}
+{% if items %}
+<section>
+  <h2 class="ih">{{ ico(icon) }} {{ title }}</h2>
+  <p class="hint">{{ sub }}</p>
+  <div class="chgrid">
+  {% for c in items %}
+    <a class="chcard pastel-{{ loop.index0 % 5 }}" href="{{ c.url }}" rel="noopener" target="_blank">
+      <img class="ch-avatar" src="{{ c.thumb }}" alt="" width="72" height="72" loading="lazy" referrerpolicy="no-referrer">
+      <span class="ch-body">
+        <strong>{{ c.name.split(' (')[0] }}{% if c.verified %} <span class="ch-ok" title="YouTube 인증 채널">✓</span>{% endif %}</strong>
+        <span class="ch-subs">{{ c.subs }}</span>
+        <span class="ch-desc">{{ c.desc }}</span>
+      </span>
+      <span class="ch-go" aria-hidden="true">▶</span>
+    </a>
+  {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endfor %}
+<p class="caution">👶 만 2세 미만 아이는 영상 시청을 최소화하라는 것이 소아청소년과 학회들의 공통 권고예요. 아이 영상은 보호자와 함께, 짧게 보여 주세요.</p>
+{{ share('아이랑 보는 유튜브 · 육아 채널 추천') }}
+<p class="meta">채널·구독자 수 확인일 {{ checked }} · 각 채널 이름과 이미지는 해당 채널의 것이며, {{ site_name }}과 제휴 관계가 없어요.</p>
+{% endblock %}

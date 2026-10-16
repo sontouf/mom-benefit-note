@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ico, share %}
+{% block title %}아이가 밤에 아플 때: 달빛어린이병원·휴일 약국·응급 안내 | {{ site_name }}{% endblock %}
+{% block desc %}밤·주말에 아이가 아프면 어디로 가야 할까요? 달빛어린이병원, 문 연 병원·약국 찾기, 119 응급의료 상담까지 공식 안내를 모았어요.{% endblock %}
+{% block main %}
+<nav class="crumbs"><a href="{{ u('/') }}">홈</a> › 소아과·응급</nav>
+<header class="stage-head deco-head">
+  {{ ico('moon', 72) }}
+  <div>
+    <p class="eyebrow">아이가 밤에, 주말에 아플 때</p>
+    <h1>지금 갈 수 있는 소아과 찾기</h1>
+  </div>
+</header>
+
+<div class="emergency">
+  {{ ico('ambulance', 56) }}
+  <div>
+    <strong>숨쉬기 힘들어하거나, 경련·의식 저하가 있으면 바로 119</strong>
+    <span>119는 24시간 응급의료 상담도 해 줘요. 갈 병원을 모르겠으면 먼저 전화하세요.</span>
+  </div>
+  <a class="btn" href="tel:119">119 전화</a>
+</div>
+
+<section>
+  <h2 class="ih">{{ ico('hospital') }} 공식 사이트에서 바로 찾기</h2>
+  <div class="guide-grid">
+    <a class="gcard pastel-2" href="https://www.e-gen.or.kr" rel="noopener" target="_blank">
+      {{ ico('moon', 48) }}
+      <strong>달빛어린이병원·문 연 병원</strong>
+      <span>응급의료포털(E-Gen)에서 평일 밤·휴일에 소아 경증 환자를 보는 달빛어린이병원과 지금 문 연 병·의원을 지역별로 찾을 수 있어요.</span>
+      <em>응급의료포털 열기 ↗</em>
+    </a>
+    <a class="gcard pastel-1" href="https://www.pharm114.or.kr" rel="noopener" target="_blank">
+      {{ ico('pill', 48) }}
+      <strong>휴일·심야 문 연 약국</strong>
+      <span>대한약사회 휴일지킴이약국에서 주말·공휴일·심야에 문 연 약국을 찾을 수 있어요.</span>
+      <em>휴일지킴이약국 열기 ↗</em>
+    </a>
+    <a class="gcard pastel-3" href="https://www.e-gen.or.kr" rel="noopener" target="_blank">
+      {{ ico('ambulance', 48) }}
+      <strong>가까운 응급실</strong>
+      <span>소아 응급실(소아전문응급센터)과 실시간 응급실 상황도 응급의료포털에서 확인할 수 있어요.</span>
+      <em>응급실 찾기 ↗</em>
+    </a>
+  </div>
+</section>
+
+<section class="panel">
+  <h2 class="ih">{{ ico('check') }} 병원 가기 전 체크</h2>
+  <ul class="tips">
+    <li>열이 났던 시각과 최고 체온, 해열제 먹인 시각·용량을 메모해 가세요.</li>
+    <li>평소 먹는 약, 예방접종 수첩(앱), 아이 건강보험 정보(보호자 신분증)를 챙기세요.</li>
+    <li>달빛어린이병원도 운영 시간이 병원마다 달라요. 출발 전에 꼭 전화로 확인하세요.</li>
+  </ul>
+</section>
+
+{% if docs %}
+<section>
+  <h2 class="ih">{{ ico('stethoscope') }} 소아과 전문의가 알려주는 영상</h2>
+  <div class="chgrid">
+  {% for c in docs %}
+    <a class="chcard pastel-{{ loop.index0 % 5 }}" href="{{ c.url }}" rel="noopener" target="_blank">
+      <img class="ch-avatar" src="{{ c.thumb }}" alt="" width="72" height="72" loading="lazy" referrerpolicy="no-referrer">
+      <span class="ch-body"><strong>{{ c.name.split(' (')[0] }}</strong><span class="ch-subs">{{ c.subs }}</span><span class="ch-desc">{{ c.desc }}</span></span>
+      <span class="ch-go" aria-hidden="true">▶</span>
+    </a>
+  {% endfor %}
+  </div>
+  <p class="hint"><a href="{{ u('/youtube/') }}">육아 유튜브 채널 더 보기 →</a></p>
+</section>
+{% endif %}
+
+<p class="caution">🌙 우리 동네 밤·주말 진료 소아과 목록(국립중앙의료원 공공데이터)도 곧 이 페이지에 자동으로 추가될 예정이에요.</p>
+{{ share('아이가 밤에 아플 때 갈 수 있는 곳') }}
+<p class="meta">이 페이지는 의료 상담을 대신하지 않아요. 아이 상태가 걱정되면 119나 의료기관에 바로 문의하세요.</p>
+{% endblock %}

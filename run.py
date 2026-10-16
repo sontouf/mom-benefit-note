@@ -104,7 +104,7 @@ def build(out, cards=False):
     records.sort(key=lambda r: (-r["views"], r["id"]))
     site = Site(records, _load(EVENTS, []), out, trends=_load(DATA / "trends.json", None),
                 clinics=_load(CLINICS, []), views_history=_load(VIEWS, {}), reviews=_load(REVIEWS, {}),
-                videos=_load(VIDEOS, {}))
+                videos=_load(VIDEOS, {}), channels=_load(DATA / "channels.json", {}))
     n = site.build()
     print(f"페이지 {n:,}개 생성 → {out}")
     if cards:

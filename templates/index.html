@@ -3,6 +3,16 @@
 {% block title %}{{ site_name }} · 임신·출산·육아 지원금, 신청 안 하면 0원{% endblock %}
 {% block main %}
 <section class="hero">
+  <div class="hero-glow" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div class="hero-deco" aria-hidden="true" data-parallax>
+    <img class="st st-1" src="{{ u('/static/emoji/teddy.png') }}" alt="" width="120" height="120" data-depth="18" data-burst>
+    <img class="st st-2" src="{{ u('/static/emoji/balloon.png') }}" alt="" width="96" height="96" data-depth="28" data-burst>
+    <img class="st st-3" src="{{ u('/static/emoji/sparkle-heart.png') }}" alt="" width="72" height="72" data-depth="12" data-burst>
+    <img class="st st-4" src="{{ u('/static/emoji/chick.png') }}" alt="" width="84" height="84" data-depth="22" data-burst>
+    <img class="st st-5" src="{{ u('/static/emoji/star.png') }}" alt="" width="56" height="56" data-depth="34" data-burst>
+    <img class="st st-6" src="{{ u('/static/emoji/cloud.png') }}" alt="" width="110" height="110" data-depth="8">
+    <img class="st st-7" src="{{ u('/static/emoji/angel.png') }}" alt="" width="104" height="104" data-depth="16" data-burst>
+  </div>
   <p class="eyebrow"><i class="pulse" aria-hidden="true"></i> 오늘 아침 {{ today.month }}월 {{ today.day }}일 업데이트</p>
   <h1 data-reveal>신청 안 하면 <span class="hl">0원</span>,<br>우리 아이 혜택 놓치지 마세요</h1>
   <button class="hero-search" type="button" data-search-open data-reveal>
@@ -25,15 +35,13 @@
   <section class="side">
     <h2>아이 단계별로 보기</h2>
     {{ stage_tiles() }}
-    {% if has_clinics %}
-    <a class="feature" href="{{ u('/clinic/') }}" data-reveal>
-      {{ ico('hospital', 56) }}
+    <a class="feature mint" href="{{ u('/clinic/') }}" data-reveal>
+      {{ ico('moon', 56) }}
       <div>
         <p class="eyebrow">아이가 밤에 아플 때</p>
-        <h2>지금 우리 동네 밤·주말 소아과</h2>
+        <h2>달빛어린이병원·휴일 약국 찾기</h2>
       </div>
     </a>
-    {% endif %}
     <a class="feature" href="{{ u('/trend/birth-bonus/') }}" data-reveal>
       {{ ico('gift', 56) }}
       <div>
@@ -43,6 +51,21 @@
     </a>
   </section>
 </div>
+
+{% if chans %}
+<section>
+  <div class="sec-head"><h2 class="ih">{{ ico('tv') }} 아이랑, 엄마랑 보는 유튜브</h2><a href="{{ u('/youtube/') }}">채널 전체</a></div>
+  <div class="ch-strip">
+  {% for c in chans[:10] %}
+    <a class="ch-chip" href="{{ c.url }}" rel="noopener" target="_blank">
+      <img src="{{ c.thumb }}" alt="" width="64" height="64" loading="lazy" referrerpolicy="no-referrer">
+      <strong>{{ c.name.split(' (')[0] | truncate(12, true, '…') }}</strong>
+      <small>{{ c.subs | replace('구독자 ', '') }}</small>
+    </a>
+  {% endfor %}
+  </div>
+</section>
+{% endif %}
 
 {% if trends %}
 <section>

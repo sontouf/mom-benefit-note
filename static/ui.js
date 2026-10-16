@@ -254,10 +254,160 @@
     });
   }
 
+
+  // ---------- 전체 메뉴 ----------
+  function menu() {
+    var layer = $("#menu");
+    if (!layer) return;
+    var sheet = $(".menu-sheet", layer), last = null;
+    function open() {
+      last = document.activeElement;
+      layer.hidden = false;
+      document.body.classList.add("no-scroll");
+      $$("[data-menu-open]").forEach(function (b) { b.setAttribute("aria-expanded", "true"); });
+      if (animOK) {
+        M.animate(layer, { opacity: [0, 1] }, { duration: 0.2 });
+        M.animate(sheet, { transform: ["translateX(100%)", "none"] }, { type: "spring", stiffness: 380, damping: 36 });
+        M.animate($$(".menu-sec > a, .menu-grid a", sheet), { transform: ["translateX(24px)", "none"] },
+          { duration: 0.35, delay: M.stagger(0.02, { startDelay: 0.08 }) });
+      }
+      setTimeout(function () { var x = $(".menu-x", layer); if (x) x.focus(); }, 30);
+    }
+    function close() {
+      var done = function () { layer.hidden = true; document.body.classList.remove("no-scroll"); };
+      $$("[data-menu-open]").forEach(function (b) { b.setAttribute("aria-expanded", "false"); });
+      if (animOK) {
+        M.animate(sheet, { transform: "translateX(100%)" }, { duration: 0.25, ease: EASE });
+        var a = M.animate(layer, { opacity: 0 }, { duration: 0.25 });
+        (a.finished || Promise.resolve()).then(function () { done(); layer.style.opacity = ""; sheet.style.transform = ""; });
+      } else done();
+      if (last && last.focus) last.focus();
+    }
+    $$("[data-menu-open]").forEach(function (b) { b.addEventListener("click", open); });
+    $$("[data-menu-close]").forEach(function (b) { b.addEventListener("click", function (e) { if (b.tagName === "A" && b.getAttribute("href") === "#") e.preventDefault(); close(); }); });
+    layer.addEventListener("click", function (e) { if (e.target === layer) close(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !layer.hidden) close(); });
+  }
+
+  // ---------- 하트·별 파티클 ----------
+  var PARTS = ["heart", "pink-heart", "star", "sparkle-heart", "ribbon-heart"];
+  function burst(x, y, n) {
+    if (!animOK) return;
+    n = n || 12;
+    for (var i = 0; i < n; i++) {
+      var img = document.createElement("img");
+      img.src = MB.base + "/static/emoji/" + PARTS[i % PARTS.length] + ".png";
+      img.className = "particle"; img.alt = "";
+      document.body.appendChild(img);
+      var ang = (Math.PI * 2 * i) / n + Math.random() * 0.6, dist = 60 + Math.random() * 70, size = 0.6 + Math.random() * 0.7;
+      var dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist - 40;
+      (function (el) {
+        var a = M.animate(el, {
+          transform: ["translate(" + (x - 14) + "px," + (y - 14) + "px) scale(.2)",
+                      "translate(" + (x - 14 + dx) + "px," + (y - 14 + dy) + "px) scale(" + size + ") rotate(" + (Math.random() * 60 - 30) + "deg)",
+                      "translate(" + (x - 14 + dx * 1.1) + "px," + (y - 14 + dy + 60) + "px) scale(" + size * 0.8 + ")"],
+          opacity: [1, 1, 0],
+        }, { duration: 1.1 + Math.random() * 0.4, ease: EASE });
+        (a.finished || Promise.resolve()).then(function () { el.remove(); });
+      })(img);
+    }
+  }
+  function burstAt(el, n) { var r = el.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, n); }
+  function joy() {
+    document.addEventListener("change", function (e) {
+      if (e.target.matches(".checklist input[type=checkbox]") && e.target.checked) {
+        burstAt(e.target.closest(".ck") || e.target, 10);
+        var list = e.target.closest(".checklist");
+        if (list && $$("input:not(:checked)", list).length === 0) setTimeout(function () { burstAt(list, 24); }, 250);
+      }
+    });
+    $$("[data-share]").forEach(function (b) { b.addEventListener("click", function () { burstAt(b, 14); }); });
+    $$("[data-burst]").forEach(function (st) {
+      st.addEventListener("click", function () {
+        burstAt(st, 10);
+        if (animOK) M.animate(st, { scale: [1, 1.25, 1], rotate: [0, -12, 0] }, { duration: 0.5 });
+      });
+    });
+  }
+
+  // ---------- 히어로 스티커 패럴랙스 (마우스·스크롤) ----------
+  function parallax() {
+    var box = $("[data-parallax]");
+    if (!box || !animOK) return;
+    var sts = $$("[data-depth]", box), mx = 0, my = 0, sy = 0, raf = null;
+    function apply() {
+      raf = null;
+      sts.forEach(function (s) {
+        var d = parseFloat(s.getAttribute("data-depth")) || 10;
+        s.style.transform = "translate(" + (mx * d).toFixed(1) + "px," + (my * d - sy * d * 0.02).toFixed(1) + "px)";
+      });
+    }
+    function req() { if (!raf) raf = requestAnimationFrame(apply); }
+    if (matchMedia("(hover: hover)").matches) {
+      window.addEventListener("pointermove", function (e) { mx = e.clientX / innerWidth - 0.5; my = e.clientY / innerHeight - 0.5; req(); });
+    }
+    window.addEventListener("scroll", function () { sy = Math.min(scrollY, 600); req(); }, { passive: true });
+    M.animate(sts, { scale: [0.6, 1] }, { type: "spring", stiffness: 260, damping: 14, delay: M.stagger(0.08, { startDelay: 0.2 }) });
+  }
+
+  // ---------- 카드 기울기 (데스크톱) ----------
+  function tilt() {
+    if (!animOK || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    $$(".card, .tcard, .chcard, .gcard, .tile").forEach(function (c) {
+      c.classList.add("tiltable");
+      c.addEventListener("pointermove", function (e) {
+        var r = c.getBoundingClientRect(), px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5;
+        c.style.transform = "perspective(700px) rotateX(" + (-py * 6).toFixed(2) + "deg) rotateY(" + (px * 6).toFixed(2) + "deg) translateY(-3px)";
+      });
+      c.addEventListener("pointerleave", function () {
+        M.animate(c, { transform: "perspective(700px) rotateX(0deg) rotateY(0deg) translateY(0px)" }, { type: "spring", stiffness: 300, damping: 20 });
+      });
+    });
+  }
+
+  // ---------- 버튼 물결 ----------
+  function ripple() {
+    document.addEventListener("pointerdown", function (e) {
+      var b = e.target.closest(".btn");
+      if (!b || !animOK) return;
+      var r = b.getBoundingClientRect(), d = Math.max(r.width, r.height) * 2, s = document.createElement("span");
+      s.className = "ripple";
+      s.style.width = s.style.height = d + "px";
+      s.style.left = (e.clientX - r.left - d / 2) + "px"; s.style.top = (e.clientY - r.top - d / 2) + "px";
+      b.appendChild(s);
+      var a = M.animate(s, { transform: ["scale(0)", "scale(1)"], opacity: [0.3, 0] }, { duration: 0.6, ease: EASE });
+      (a.finished || Promise.resolve()).then(function () { s.remove(); });
+    });
+  }
+
+  // ---------- 스크롤 진행바 · 맨 위로 ----------
+  function scrollUi() {
+    var bar = $("[data-progress]"), top = $("[data-to-top]");
+    function on() {
+      var h = document.documentElement.scrollHeight - innerHeight, p = h > 0 ? scrollY / h : 0;
+      if (bar) bar.style.transform = "scaleX(" + p.toFixed(4) + ")";
+      if (top) {
+        var show = scrollY > 900;
+        if (show && top.hidden) { top.hidden = false; if (animOK) M.animate(top, { scale: [0.4, 1], opacity: [0, 1] }, { type: "spring", stiffness: 400, damping: 18 }); }
+        else if (!show && !top.hidden) top.hidden = true;
+      }
+    }
+    window.addEventListener("scroll", on, { passive: true }); on();
+    if (top) top.addEventListener("click", function () { scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); });
+  }
+
+  // ---------- 섹션 제목 아이콘 통통 ----------
+  function hops() {
+    if (!animOK) return;
+    $$("h2.ih .ico3d").forEach(function (ic) {
+      M.inView(ic, function () { M.animate(ic, { scale: [0.3, 1.15, 1], rotate: [-20, 8, 0] }, { duration: 0.7, ease: EASE }); });
+    });
+  }
+
   function ready(fn) { if (document.readyState !== "loading") fn(); else document.addEventListener("DOMContentLoaded", fn); }
   ready(function () {
     animOK = !!(window.Motion && window.Motion.animate && !reduce);
     M = window.Motion || null;
-    tabs(); search(); stickyCta(); counter(); youtube(); reveal();
+    tabs(); search(); stickyCta(); counter(); youtube(); menu(); joy(); parallax(); tilt(); ripple(); scrollUi(); hops(); reveal();
   });
 })();
