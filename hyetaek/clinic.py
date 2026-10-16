@@ -25,11 +25,11 @@ class NotRegistered(RuntimeError):
     pass
 
 
-def _get(params, retries=3):
+def _get(params, retries=5):
     url = URL + "?" + urllib.parse.urlencode(params)
     for attempt in range(retries):
         try:
-            with urllib.request.urlopen(url, timeout=60) as r:
+            with urllib.request.urlopen(url, timeout=120) as r:
                 return r.read()
         except urllib.error.HTTPError as e:
             if e.code in (401, 403):
@@ -37,7 +37,7 @@ def _get(params, retries=3):
                                     "(https://www.data.go.kr/data/15000736/openapi.do).") from e
             if attempt == retries - 1:
                 raise
-            time.sleep(2 ** attempt)
+            time.sleep(3 * (attempt + 1))
         except (urllib.error.URLError, TimeoutError):
             if attempt == retries - 1:
                 raise
@@ -57,7 +57,7 @@ def parse(xml_bytes):
     return total, items
 
 
-def fetch_all(service_key, per_page=1000):
+def fetch_all(service_key, per_page=500):
     rows, page = [], 1
     while True:
         total, items = parse(_get({"serviceKey": service_key, "QD": "D002",
