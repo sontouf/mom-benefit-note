@@ -25,6 +25,7 @@ jobs:
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
           THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
           SITE_URL: ${{ vars.SITE_URL }}
+          THREADS_TOKEN_ISSUED: ${{ vars.THREADS_TOKEN_ISSUED }}
         run: python tools/auto_post.py
       - name: 게시 기록 저장
         run: |

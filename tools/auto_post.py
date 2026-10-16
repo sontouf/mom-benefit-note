@@ -35,18 +35,15 @@ def pick(drafts, log, today):
     return None
 
 
-def refresh_token(token):
-    """장기 토큰(60일) 만료 연장. 새 토큰 문자열이 오면 경고로 알린다."""
-    url = f"https://graph.threads.net/refresh_access_token?grant_type=th_refresh_token&access_token={token}"
-    try:
-        with urllib.request.urlopen(url, timeout=30) as r:
-            d = json.load(r)
-        days = int(d.get("expires_in", 0)) // 86400
-        print(f"토큰 연장: 앞으로 {days}일 유효")
-        if d.get("access_token") and d["access_token"] != token:
-            print("::warning title=스레드 토큰 갱신::새 토큰이 발급됐어요. GitHub Secret THREADS_TOKEN 을 새 값으로 바꿔 주세요.")
-    except Exception as e:  # noqa: BLE001
-        print(f"::warning title=스레드 토큰 연장 실패::{e}")
+def check_token_age(today):
+    """장기 토큰은 60일 유효. 발급일(THREADS_TOKEN_ISSUED)로부터 50일이 지나면 매일 경고한다."""
+    issued = os.environ.get("THREADS_TOKEN_ISSUED")
+    if not issued:
+        return
+    left = 60 - (today - date.fromisoformat(issued)).days
+    print(f"스레드 토큰: 약 {left}일 남음")
+    if left <= 10:
+        print(f"::warning title=스레드 토큰 만료 임박::{left}일 남았어요. 토큰을 연장해 THREADS_TOKEN 과 THREADS_TOKEN_ISSUED 를 갱신하세요.")
 
 
 def main():
@@ -69,7 +66,7 @@ def main():
     if [u for u in d["images"] if not post_threads.reachable(u)]:
         print("::warning title=카드 이미지 접근 불가::오늘은 게시하지 않아요.")
         return
-    refresh_token(os.environ["THREADS_TOKEN"])
+    check_token_age(today)
     pid, link = post_threads.publish(os.environ["THREADS_USER_ID"], d)
     print(f"게시 완료: {d['key']} → {link or pid}")
     log.insert(0, {"date": today.isoformat(), "key": d["key"], "id": pid, "url": link})
