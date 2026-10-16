@@ -48,8 +48,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/
-          git diff --cached --quiet || git commit -m "data: $(TZ=Asia/Seoul date +%F) 갱신"
-          git push
+          git diff --cached --quiet && exit 0
+          git commit -m "data: $(TZ=Asia/Seoul date +%F) 갱신"
+          # 배포 중에 다른 커밋이 올라와도 수집 결과를 잃지 않도록: 최신을 받아 합친 뒤 재시도 (데이터는 이번 수집 우선)
+          for i in 1 2 3; do
+            git pull --rebase -X theirs origin main && git push && exit 0
+            sleep $((i * 5))
+          done
+          exit 1
 
       - name: 한글 폰트 (카드뉴스 렌더링 대비)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk
