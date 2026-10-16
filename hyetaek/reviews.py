@@ -105,9 +105,17 @@ def _kakao(kind, query, key):
     return out
 
 
+MOM_CAFE = re.compile(r"(맘|엄마|육아|임신|출산|베이비|아기|아가|키즈|부모|줌마|여성)")
+SPAM = re.compile(r"(부업|재테크|체험단|리뷰|마케팅|수익|대출|보험|투자|홍보|쿠폰|광고)")
+
+
 def _relevant(item, core):
     text = f"{item['title']} {item['desc']}"
-    return core in text.replace(" ", "") and ("후기" in text or "신청" in text or "받았" in text or "받은" in text)
+    if core not in text.replace(" ", ""):
+        return False
+    if item["src"] == "카페":  # 맘카페 글은 '후기'라고 안 써도 질문·경험담이 대부분
+        return not SPAM.search(item["by"]) and not SPAM.search(item["title"])
+    return any(w in text for w in ("후기", "신청", "받았", "받은", "사용처", "입금"))
 
 
 def fetch(records, cache, cid, secret, today=None, limit=300, kakao_key=None):
@@ -150,12 +158,19 @@ def fetch(records, cache, cid, secret, today=None, limit=300, kakao_key=None):
                         "date": it.get("postdate", "")}
                 if it.get("thumbnail", "").startswith("http"):
                     item["thumb"] = it["thumbnail"].replace("http://", "https://", 1)
-                if item["link"].startswith("http") and item["link"] not in seen and _relevant(item, core):
-                    seen.add(item["link"])
+                key = re.sub(r"\W", "", item["title"])
+                if item["link"].startswith("http") and item["link"] not in seen and key not in seen \
+                        and _relevant(item, core):
+                    seen.update((item["link"], key))
                     items.append(item)
             time.sleep(0.12)
-        items.sort(key=lambda x: x["date"], reverse=True)
-        items = items[:6]
+        # 블로그는 최신순 3개, 카페(날짜 없음)는 검색 정확도순 3개를 번갈아 섞는다
+        blogs = sorted((i for i in items if i["src"] == "블로그"), key=lambda x: x["date"], reverse=True)[:3]
+        cafes = sorted((i for i in items if i["src"] == "카페"), key=lambda x: not MOM_CAFE.search(x["by"]))[:3]
+        mixed = []
+        for pair in zip(cafes + [None] * 3, blogs + [None] * 3):
+            mixed += [x for x in pair if x]
+        items = (mixed + [i for i in items if i not in mixed])[:6]
         for it in items:
             if it["src"] == "블로그" and not it.get("thumb"):
                 it["thumb"] = og_image(it["link"])

@@ -153,13 +153,13 @@ class ReviewTest(unittest.TestCase):
             cache, calls = reviews.fetch(recs, {}, "id", "sec", date(2026, 10, 17))
             self.assertEqual(calls, 2)
             items = cache["A"]["items"]
-            self.assertEqual([i["src"] for i in items], ["블로그", "카페"])
-            self.assertEqual(items[0]["title"], "첫만남이용권 신청 후기")
-            self.assertIn("&", items[1]["desc"])
+            self.assertEqual([i["src"] for i in items], ["카페", "블로그"])  # 맘카페·블로그를 번갈아
+            self.assertEqual(items[1]["title"], "첫만남이용권 신청 후기")
+            self.assertIn("&", items[0]["desc"])
             _, calls2 = reviews.fetch(recs, cache, "id", "sec", date(2026, 10, 20))
             self.assertEqual(calls2, 0)  # 7일 안에는 다시 부르지 않는다
-            self.assertEqual(items[0]["thumb"], "https://img.example/thumb.jpg")  # 블로그만 썸네일
-            self.assertNotIn("thumb", items[1])
+            self.assertEqual(items[1]["thumb"], "https://img.example/thumb.jpg")  # 블로그만 썸네일
+            self.assertNotIn("thumb", items[0])
         finally:
             reviews._call, reviews.og_image = orig, orig_og
 
