@@ -24,8 +24,12 @@
   <div class="svc-tags">
     {% for s in r.stages %}<a class="chip sm" href="{{ u('/stage/' ~ s ~ '/') }}">{{ stages[s].name }}</a>{% endfor %}
   </div>
-  <h1>{{ r.name }}</h1>
+  <h1 data-reveal>{{ r.name }}</h1>
   <p class="lead">{{ r.summary }}</p>
+  <p class="proof">
+    <span>👀 정부24에서 <b data-count="{{ r.views }}">{{ r.views | comma }}</b>번 조회된 혜택</span>
+    <span class="live-page" data-page-views hidden>· 오늘 이 페이지 <b>0</b>명 방문</span>
+  </p>
 
   <div class="keybox">
     <div class="k-amt">
@@ -56,7 +60,57 @@
   {{ sec("접수 기관", r.reception, 'muted') }}
   {{ sec("근거 법령", r.laws, 'muted') }}
 
+  <section class="blk videos" id="videos">
+    <h2>📺 영상으로 보는 신청 방법</h2>
+    {% if video_items %}
+    <div class="vgrid">
+      {% for v in video_items %}
+      <figure class="vcard">
+        <button type="button" class="vthumb" data-yt="{{ v.id }}" aria-label="{{ v.title }} 재생">
+          <img src="https://i.ytimg.com/vi/{{ v.id }}/mqdefault.jpg" alt="" loading="lazy" width="320" height="180">
+          <span class="play" aria-hidden="true"></span>
+        </button>
+        <figcaption><a href="https://www.youtube.com/watch?v={{ v.id }}" rel="nofollow noopener" target="_blank">{{ v.title }}</a>
+          <span>{{ v.channel }}{% if v.date %} · {{ v.date }}{% endif %}</span></figcaption>
+      </figure>
+      {% endfor %}
+    </div>
+    <p class="hint">YouTube에서 찾은 영상이에요. 영상 속 정보는 촬영 시점 기준이라 지금과 다를 수 있어요.</p>
+    {% else %}
+    <a class="yt-search" href="{% for k, _, u in review_links if k == 'youtube' %}{{ u }}{% endfor %}" rel="nofollow noopener" target="_blank">
+      <span class="play sm" aria-hidden="true"></span>
+      <span><strong>유튜브에서 '{{ r.name | truncate(20, true, '…') }}' 영상 찾기</strong><small>신청 방법·후기 영상을 바로 볼 수 있어요</small></span>
+    </a>
+    {% endif %}
+  </section>
+
+  <section class="blk reviews" id="reviews">
+    <h2>💬 받아본 엄마들의 후기</h2>
+    {% if review_items %}
+    <ul class="review-list">
+      {% for it in review_items %}
+      <li><a href="{{ it.link }}" rel="nofollow noopener" target="_blank">
+        <span class="src-badge {{ 'cafe' if it.src == '카페' }}">{{ '맘카페·카페' if it.src == '카페' else '블로그' }}</span>
+        <strong>{{ it.title }}</strong>
+        {% if it.desc %}<span class="rv-desc">{{ it.desc }}</span>{% endif %}
+        <span class="rv-by">{{ it.by }}{% if it.date %} · {{ it.date[:4] }}.{{ it.date[4:6] }}.{{ it.date[6:8] }}{% endif %}</span>
+      </a></li>
+      {% endfor %}
+    </ul>
+    <p class="hint">네이버 검색 API로 찾은 글이에요. 개인 경험담이라 실제 조건은 다를 수 있어요.</p>
+    {% endif %}
+    <p class="rv-label">{{ '다른 곳 후기도 보기' if review_items else '플랫폼별 후기 바로 찾기' }}</p>
+    <div class="rv-links">
+      {% for key, label, url in review_links %}<a class="rv-link {{ key }}" href="{{ url }}" rel="nofollow noopener" target="_blank">{{ label }}</a>{% endfor %}
+    </div>
+  </section>
+
   {{ share(r.name ~ (' ' ~ r.amount_label if r.amount_label else '')) }}
+  <div class="sticky-cta" data-sticky-cta>
+    <div class="sc-info"><strong>{{ r.amount_label or r.name | truncate(14, true, '…') }}</strong><span>{{ (dday(r) or ['기한 확인'])[0] }}</span></div>
+    {% if r.apply_url %}<a class="btn" href="{{ r.apply_url }}" rel="nofollow noopener" target="_blank">신청하기</a>
+    {% elif r.detail_url %}<a class="btn" href="{{ r.detail_url }}" rel="nofollow noopener" target="_blank">원문 보기</a>{% endif %}
+  </div>
   <p class="meta">최종 수정 {{ r.modified or '-' }} · 금액은 지원 내용에서 자동으로 뽑은 '최대' 값이라 실제와 다를 수 있어요.</p>
 </article>
 

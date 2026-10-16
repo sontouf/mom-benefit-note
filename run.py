@@ -12,7 +12,8 @@ import os
 import sys
 from pathlib import Path
 
-from hyetaek import api, clinic, history, threads
+from hyetaek import api, clinic, history, reviews, threads, videos
+from hyetaek.mom import stages_for
 from hyetaek.build import Site, today_kst
 from hyetaek.normalize import build_records
 
@@ -21,6 +22,10 @@ DATA = ROOT / "data"
 SERVICES = DATA / "services.json"
 EVENTS = DATA / "events.json"
 CLINICS = DATA / "clinics.json"
+VIEWS = DATA / "views_history.json"
+REVIEWS = DATA / "reviews.json"
+VIDEOS = DATA / "videos.json"
+VIEW_DAYS = 8  # 급상승 계산용 조회수 스냅샷 보관 일수
 
 
 def _dump_lines(path, items):
@@ -58,9 +63,19 @@ def fetch(sample=False):
     DATA.mkdir(exist_ok=True)
     _dump_lines(SERVICES, sorted(records, key=lambda r: r["id"]))
     _dump_lines(EVENTS, history.merge(_load(EVENTS, []), events))
+    _save_views(records)
     counts = {t: sum(e["type"] == t for e in events) for t in ("new", "updated", "removed")}
     print(f"서비스 {len(records):,}건 저장 · 신규 {counts['new']} / 변경 {counts['updated']} / 종료 {counts['removed']}")
     fetch_clinics(sample)
+
+
+def _save_views(records):
+    """날짜별 정부24 조회수 스냅샷. 며칠 사이 증가분으로 '요즘 뜨는 혜택'을 계산한다."""
+    hist = _load(VIEWS, {})
+    hist[today_kst().isoformat()] = {r["id"]: r["views"] for r in records}
+    keep = sorted(hist)[-VIEW_DAYS:]
+    body = ",\n".join(f"{json.dumps(d)}: {json.dumps(hist[d], separators=(',', ':'), sort_keys=True)}" for d in keep)
+    VIEWS.write_text("{\n" + body + "\n}\n", encoding="utf-8")
 
 
 def fetch_clinics(sample=False):
@@ -88,7 +103,8 @@ def build(out, cards=False):
         sys.exit("data/services.json 이 없습니다. 먼저 fetch 를 실행하세요.")
     records.sort(key=lambda r: (-r["views"], r["id"]))
     site = Site(records, _load(EVENTS, []), out, trends=_load(DATA / "trends.json", None),
-                clinics=_load(CLINICS, []))
+                clinics=_load(CLINICS, []), views_history=_load(VIEWS, {}), reviews=_load(REVIEWS, {}),
+                videos=_load(VIDEOS, {}))
     n = site.build()
     print(f"페이지 {n:,}개 생성 → {out}")
     if cards:

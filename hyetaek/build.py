@@ -14,6 +14,7 @@ from markupsafe import Markup, escape
 
 from .mom import STAGE_INFO, STAGES, format_won, is_monthly, max_amount, personal_amount, stages_for
 from .normalize import SIDO, extract_region
+from .reviews import search_links
 
 ROOT = Path(__file__).resolve().parent.parent
 PER_PAGE = 30
@@ -65,7 +66,11 @@ def enrich(records, extra_keywords=()):
 
 
 class Site:
-    def __init__(self, records, events, out_dir, today=None, trends=None, clinics=None):
+    def __init__(self, records, events, out_dir, today=None, trends=None, clinics=None, views_history=None,
+                 reviews=None, videos=None):
+        self.reviews = reviews or {}
+        self.videos = videos or {}
+        self.views_history = views_history or {}
         self.trends = trends or {"topics": []}
         self.clinics = clinics or []
         self.records = enrich(records, trend_keywords(self.trends))
@@ -93,6 +98,7 @@ class Site:
             google_verify=os.environ.get("GOOGLE_SITE_VERIFICATION", ""),
             naver_verify=os.environ.get("NAVER_SITE_VERIFICATION", ""),
             ga_id=os.environ.get("GA_ID", ""),
+            counter_url=os.environ.get("COUNTER_URL", "").rstrip("/"),
         )
 
     # ---------- helpers ----------
@@ -180,14 +186,25 @@ class Site:
         # 단계별 '꼭 챙길 것' = 전국 공통 혜택 중 많이 찾는 순
         must = {s: [r for r in national if s in r["stages"]][:8] for s in STAGE_INFO}
 
-        self.write("/", "index.html", trends=self._build_trends(open_recs)[:6],
+        rk = self.rankings(open_recs)
+        self.env.globals["stats"] = {
+            "total": len(open_recs), "soon": len(soon),
+            "new_week": sum(1 for e in self.events if e["type"] == "new"
+                            and (self.today - date.fromisoformat(e["date"])).days < 7),
+            "regions": len(by_sigungu),
+        }
+        self.write("/ranking/", "ranking.html", rk=rk)
+        self.write("/", "index.html", trends=self._build_trends(open_recs)[:6], rk=rk,
                    soon=soon[:6], soon_total=len(soon),
                    new=[self.by_id[e["id"]] for e in new_events[:6]],
                    money=self.top_money(national, 6),
                    popular=national[:6], total=len(open_recs))
 
         for rec in self.records:
-            self.write(f"/s/{rec['id']}/", "service.html", r=rec, related=self._related(rec, by_stage))
+            self.write(f"/s/{rec['id']}/", "service.html", r=rec, related=self._related(rec, by_stage),
+                       review_links=search_links(rec["name"]),
+                       review_items=self.reviews.get(rec["id"], {}).get("items", []),
+                       video_items=self.videos.get(rec["id"], {}).get("items", []))
 
         for slug, info in STAGE_INFO.items():
             items = by_stage[slug]
@@ -253,6 +270,32 @@ class Site:
             (self.out / "CNAME").write_text(os.environ["CNAME"] + "\n", encoding="utf-8")
         (self.out / ".nojekyll").write_text("", encoding="utf-8")
         return len(self.urls)
+
+    def rankings(self, open_recs, n=50):
+        """인기(누적 조회수) · 급상승(최근 며칠 조회수 증가) · 신규."""
+        family = [r for r in open_recs if r["stages"]]
+        popular = family[:n]
+        hot, window = [], 0
+        dates = sorted(self.views_history)
+        if len(dates) >= 2:
+            latest = self.views_history[dates[-1]]
+            base_date = dates[max(0, len(dates) - 8)]  # 최대 7일 전과 비교
+            base = self.views_history[base_date]
+            window = (date.fromisoformat(dates[-1]) - date.fromisoformat(base_date)).days
+            for r in family:
+                if r["id"] in base and r["id"] in latest:
+                    delta = latest[r["id"]] - base[r["id"]]
+                    if delta > 0:
+                        hot.append({**r, "delta": delta})
+            hot.sort(key=lambda r: -r["delta"])
+            hot = hot[:n]
+        new = [self.by_id[e["id"]] for e in self.events if e["type"] == "new" and e["id"] in self.by_id][:n]
+        if not new:  # 이력이 쌓이기 전에는 최근 수정된 혜택
+            new = sorted((r for r in family if r["modified"]), key=lambda r: r["modified"], reverse=True)[:n]
+        top = max([r["views"] for r in popular] or [1])
+        top_hot = max([r["delta"] for r in hot] or [1])
+        return {"popular": popular, "hot": hot, "new": new, "window": window,
+                "top_views": top, "top_delta": top_hot, "new_is_events": bool(self.events)}
 
     def _build_clinics(self):
         if not self.clinics:

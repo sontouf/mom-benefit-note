@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "_macros.html" import rank_tabs, ico, stat_strip, share %}
+{% block title %}엄마들이 많이 보는 지원금 랭킹 TOP 50 | {{ site_name }}{% endblock %}
+{% block desc %}정부24 조회수로 집계한 임신·출산·육아 지원금 인기 순위, 요즘 조회수가 급상승한 혜택, 새로 생긴 혜택을 매일 업데이트합니다.{% endblock %}
+{% block main %}
+<nav class="crumbs"><a href="{{ u('/') }}">홈</a> › 랭킹</nav>
+<header class="stage-head">
+  {{ ico('trophy', 72) }}
+  <div>
+    <p class="eyebrow">매일 아침 갱신 · {{ today.isoformat() }}</p>
+    <h1>엄마들이 많이 보는 혜택 랭킹</h1>
+  </div>
+</header>
+{{ stat_strip() }}
+<section class="panel rank-panel">
+  {{ rank_tabs(rk, 50, 'full') }}
+</section>
+{{ share('엄마들이 많이 보는 지원금 랭킹') }}
+{% endblock %}

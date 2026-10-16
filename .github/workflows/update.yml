@@ -35,6 +35,9 @@ jobs:
       - name: Fetch public data
         env:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: python run.py fetch
 
       - name: Commit data snapshot (변경 이력 보존)
@@ -58,6 +61,7 @@ jobs:
           GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
           NAVER_SITE_VERIFICATION: ${{ vars.NAVER_SITE_VERIFICATION }}
           GA_ID: ${{ vars.GA_ID }}
+          COUNTER_URL: ${{ vars.COUNTER_URL }}
           CHROME_BIN: /usr/bin/google-chrome
         run: python run.py cards
 

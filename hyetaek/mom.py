@@ -38,7 +38,7 @@ STAGE_NAMES = {s[0]: s[1] for s in STAGES}
 STAGE_INFO = {s[0]: {"slug": s[0], "name": s[1], "emoji": s[2], "desc": s[3]} for s in STAGES}
 
 # 엄마 관심사와 무관한데 키워드에 걸리기 쉬운 것들 (예: '할인'이 들어간 사업자 대출)
-EXCLUDE = re.compile(r"(법인|기업체|사업장|농기계|어선|축사|가축|임업|선박|공장|산단)")
+EXCLUDE = re.compile(r"(법인|기업체|사업장|농기계|어선|축사|가축|임업|선박|공장|산단|운전면허|장사시설|자동차검사)")
 
 
 def _has(text, words):

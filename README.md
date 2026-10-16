@@ -68,6 +68,16 @@ python tools/post_threads.py drafts/2026-10-17.json --key birth-bonus
 2. Secret `DATA_GO_KR_KEY`, Variables `SITE_URL`, `BASE_PATH`(커스텀 도메인이면 비움), 선택으로 `SITE_NAME`, `CNAME`, `ADSENSE_CLIENT`
 3. Actions → `daily-update` → Run workflow. 이후 매일 06:00 KST에 수집, 빌드, 카드 생성, 배포가 자동으로 실행됩니다. 스레드 초안은 실행 결과의 `threads-drafts` 아티팩트로 내려받습니다.
 
+## 후기·영상·방문자 (키를 넣으면 켜짐)
+| 기능 | 넣을 값 (GitHub Secrets / Variables) | 얻는 곳 |
+|---|---|---|
+| 네이버 블로그·맘카페 후기 | Secrets `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` | [네이버 개발자센터](https://developers.naver.com/apps/#/register) → 애플리케이션 등록 → 사용 API: **검색** |
+| 관련 유튜브 영상 | Secret `YOUTUBE_API_KEY` | [Google Cloud 콘솔](https://console.cloud.google.com/apis/library/youtube.googleapis.com) → YouTube Data API v3 사용 → 사용자 인증 정보 → API 키 |
+| 지금 보는 사람 | Variable `COUNTER_URL` | `counter/README.md` 대로 Cloudflare Worker 배포 |
+
+- 키가 없을 때도 혜택마다 네이버 블로그·맘카페·스레드·인스타·X·유튜브 **후기 검색 링크**는 항상 표시됩니다.
+- 후기는 인기 혜택 300개를 7일마다, 영상은 하루 할당량(90회) 안에서 14일마다 갱신합니다.
+
 ## 검색 노출·수익화 설정 (코드는 준비됨, 값만 넣으면 켜짐)
 GitHub 저장소 → Settings → Secrets and variables → Actions → **Variables** 에 넣으면 다음 자동 실행부터 반영됩니다.
 

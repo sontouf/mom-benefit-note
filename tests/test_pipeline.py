@@ -126,6 +126,59 @@ class MomTest(unittest.TestCase):
         self.assertEqual(stages_for(rec), [])
 
 
+class ReviewTest(unittest.TestCase):
+    def test_links_and_clean(self):
+        from hyetaek import reviews
+        self.assertEqual(reviews.clean_name("[샘플] 산모 지원(확대)"), "산모 지원")
+        links = dict((k, u) for k, _, u in reviews.search_links("첫만남이용권 지원"))
+        self.assertIn("ssc=tab.cafe.all", links["cafe"])
+        self.assertIn("%ED%9B%84%EA%B8%B0", links["threads"])  # '후기'
+        self.assertTrue(links["insta"].endswith("/explore/tags/%EC%B2%AB%EB%A7%8C%EB%82%A8%EC%9D%B4%EC%9A%A9%EA%B6%8C%EC%A7%80%EC%9B%90/"))
+
+    def test_fetch_filters_and_caches(self):
+        from hyetaek import reviews
+        fake = {
+            "blog": [{"title": "<b>첫만남이용권</b> 신청 후기", "link": "https://blog.naver.com/a/1",
+                      "description": "주민센터에서 바로 받았어요", "bloggername": "맘A", "postdate": "20261001"},
+                     {"title": "오늘 저녁 메뉴", "link": "https://blog.naver.com/b/2",
+                      "description": "무관한 글", "bloggername": "B", "postdate": "20261002"}],
+            "cafearticle": [{"title": "첫만남이용권 사용처 후기", "link": "https://cafe.naver.com/x/3",
+                             "description": "기저귀 샀어요 &amp; 분유도", "cafename": "맘카페"}],
+        }
+        orig = reviews._call
+        reviews._call = lambda kind, q, c, s: fake[kind]
+        try:
+            recs = [{"id": "A", "name": "첫만남이용권 지원"}]
+            cache, calls = reviews.fetch(recs, {}, "id", "sec", date(2026, 10, 17))
+            self.assertEqual(calls, 2)
+            items = cache["A"]["items"]
+            self.assertEqual([i["src"] for i in items], ["블로그", "카페"])
+            self.assertEqual(items[0]["title"], "첫만남이용권 신청 후기")
+            self.assertIn("&", items[1]["desc"])
+            _, calls2 = reviews.fetch(recs, cache, "id", "sec", date(2026, 10, 20))
+            self.assertEqual(calls2, 0)  # 7일 안에는 다시 부르지 않는다
+        finally:
+            reviews._call = orig
+
+
+class VideoTest(unittest.TestCase):
+    def test_fetch_filters(self):
+        from hyetaek import videos
+        fake = [{"id": {"videoId": "v1"}, "snippet": {"title": "첫만남이용권 신청 방법 총정리", "channelTitle": "맘TV",
+                                                     "publishedAt": "2026-09-01T00:00:00Z"}},
+                {"id": {"videoId": "v2"}, "snippet": {"title": "오늘의 브이로그", "channelTitle": "X",
+                                                     "publishedAt": "2026-09-02T00:00:00Z"}},
+                {"id": {"channelId": "c"}, "snippet": {"title": "첫만남이용권 채널"}}]
+        orig = videos._call
+        videos._call = lambda q, k: fake
+        try:
+            cache, calls = videos.fetch([{"id": "A", "name": "첫만남이용권 지원"}], {}, "key", date(2026, 10, 17))
+            self.assertEqual(calls, 1)
+            self.assertEqual([v["id"] for v in cache["A"]["items"]], ["v1"])
+        finally:
+            videos._call = orig
+
+
 class ClinicTest(unittest.TestCase):
     def test_parse_and_filter(self):
         from hyetaek import clinic

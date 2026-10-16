@@ -68,3 +68,57 @@
   </div>
 </a>
 {% endmacro %}
+
+{% macro rank_list(items, kind, top, limit=10) %}
+<ol class="rank-list">
+{% for r in items[:limit] %}
+  {% set val = r.delta if kind == 'hot' else r.views %}
+  <li>
+    <a href="{{ u('/s/' ~ r.id ~ '/') }}">
+      <span class="rk {{ 'top' if loop.index <= 3 }}">{{ loop.index }}</span>
+      <span class="rk-body">
+        <strong>{{ r.name }}</strong>
+        <span class="rk-meta">{% if r.amount_label %}<em>{{ r.amount_label }}</em> · {% endif %}{{ ((r.sigungu or sido_short.get(r.sido, r.sido)) if r.sido else ('전국' if r.national else r.org)) }}</span>
+        {% if kind != 'new' %}<span class="bar" aria-hidden="true"><i data-bar style="width: {{ [4, (val / top * 100) | round(1)] | max }}%"></i></span>{% endif %}
+      </span>
+      {% if kind == 'hot' %}<span class="delta">▲ {{ r.delta | comma }}</span>
+      {% elif kind == 'popular' %}<span class="views">{{ (r.views / 10000) | round(1) if r.views >= 10000 else r.views | comma }}{{ '만' if r.views >= 10000 }}</span>
+      {% else %}{% set d = dday(r) %}{% if d %}<span class="badge {{ d[1] }}">{{ d[0] }}</span>{% endif %}{% endif %}
+    </a>
+  </li>
+{% endfor %}
+</ol>
+{% endmacro %}
+
+{% macro rank_tabs(rk, limit=10, id='rk') %}
+<div class="tabs" role="tablist" data-tabs>
+  <button role="tab" aria-selected="true" aria-controls="{{ id }}-popular" id="{{ id }}-t1">🔥 인기</button>
+  <button role="tab" aria-selected="false" aria-controls="{{ id }}-hot" id="{{ id }}-t2">📈 요즘 뜨는</button>
+  <button role="tab" aria-selected="false" aria-controls="{{ id }}-new" id="{{ id }}-t3">🆕 {{ '신규' if rk.new_is_events else '최근 업데이트' }}</button>
+  <span class="tab-ink" aria-hidden="true"></span>
+</div>
+<div class="tab-panels">
+  <div role="tabpanel" id="{{ id }}-popular" aria-labelledby="{{ id }}-t1">
+    {{ rank_list(rk.popular, 'popular', rk.top_views, limit) }}
+    <p class="hint">정부24 누적 조회수 기준</p>
+  </div>
+  <div role="tabpanel" id="{{ id }}-hot" aria-labelledby="{{ id }}-t2" hidden>
+    {% if rk.hot %}{{ rank_list(rk.hot, 'hot', rk.top_delta, limit) }}
+    <p class="hint">최근 {{ rk.window }}일 동안 정부24 조회수가 가장 많이 늘어난 혜택</p>
+    {% else %}<div class="empty">📊 조회수 변화를 매일 기록하고 있어요.<br>내일 아침부터 '요즘 뜨는 혜택'이 나타나요.</div>{% endif %}
+  </div>
+  <div role="tabpanel" id="{{ id }}-new" aria-labelledby="{{ id }}-t3" hidden>
+    {{ rank_list(rk.new, 'new', 1, limit) }}
+    <p class="hint">{{ '매일 아침 새로 생긴 혜택' if rk.new_is_events else '정부24에서 최근 내용이 수정된 혜택' }}</p>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro stat_strip() %}
+<div class="stats" data-reveal>
+  <div><b data-count="{{ stats.total }}">{{ stats.total | comma }}</b><span>엄마·가족 혜택</span></div>
+  <div><b data-count="{{ stats.soon }}">{{ stats.soon | comma }}</b><span>30일 내 마감</span></div>
+  <div><b data-count="{{ stats.regions }}">{{ stats.regions | comma }}</b><span>시군구 정보</span></div>
+  <div class="live" data-live hidden><b data-live-now>0</b><span><i class="pulse" aria-hidden="true"></i>지금 보는 사람</span></div>
+</div>
+{% endmacro %}

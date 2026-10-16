@@ -1,0 +1,12 @@
+name = "mombenefit-counter"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://mombenefit.co.kr,https://www.mombenefit.co.kr"
+
+# `npx wrangler d1 create mombenefit-counter` 실행 후 나온 database_id 를 아래에 넣는다
+[[d1_databases]]
+binding = "DB"
+database_name = "mombenefit-counter"
+database_id = "REPLACE_WITH_DATABASE_ID"

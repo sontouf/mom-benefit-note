@@ -20,6 +20,7 @@
     <a href="{{ u('/s/' ~ r.id ~ '/') }}">
       <strong>{{ sido_short.get(r.sido, r.sido) }} {{ r.sigungu }}</strong>
       <span class="hint">{{ r.name }}</span>
+      <span class="bar" aria-hidden="true"><i data-bar style="width: {{ (r.amount / bonus[0].amount * 100) | round(1) }}%"></i></span>
     </a>
     <em class="amt">{{ r.amount_label }}</em>
   </li>

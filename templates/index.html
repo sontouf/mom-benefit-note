@@ -1,37 +1,53 @@
 {% extends "base.html" %}
-{% from "_macros.html" import grid, ad, stage_tiles, ico, trend_card %}
+{% from "_macros.html" import grid, ad, stage_tiles, ico, trend_card, rank_tabs, stat_strip %}
 {% block title %}{{ site_name }} · 임신·출산·육아 지원금, 신청 안 하면 0원{% endblock %}
 {% block main %}
 <section class="hero">
-  <p class="eyebrow">매일 아침 자동 업데이트 · 엄마·가족 혜택 {{ total | comma }}건</p>
-  <h1>신청 안 하면 <span class="hl">0원</span>,<br>우리 아이 혜택 놓치지 마세요</h1>
-  <p class="lead">임신부터 초·중·고까지, 아이 단계와 우리 동네로 받을 수 있는 지원금만 골라 드려요.</p>
-  <div class="hero-cta">
+  <p class="eyebrow"><i class="pulse" aria-hidden="true"></i> 오늘 아침 {{ today.month }}월 {{ today.day }}일 업데이트</p>
+  <h1 data-reveal>신청 안 하면 <span class="hl">0원</span>,<br>우리 아이 혜택 놓치지 마세요</h1>
+  <button class="hero-search" type="button" data-search-open data-reveal>
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+    <span>어떤 혜택을 찾으세요? <small>예: 첫만남이용권</small></span>
+  </button>
+  <div class="hero-cta" data-reveal>
     <a class="btn" href="{{ u('/find/') }}">30초 맞춤 찾기</a>
-    <a class="btn ghost" href="{{ u('/region/') }}">우리 동네 혜택</a>
+    <a class="btn ghost" href="{{ u('/ranking/') }}">인기 랭킹 보기</a>
   </div>
+  {{ stat_strip() }}
 </section>
 
-<section>
-  <h2>아이 단계별로 보기</h2>
-  {{ stage_tiles() }}
-</section>
+<div class="split">
+  <section class="panel rank-panel" data-reveal>
+    <div class="sec-head"><h2 class="ih">{{ ico('trophy') }} 엄마들이 보는 혜택 랭킹</h2><a href="{{ u('/ranking/') }}">TOP 50</a></div>
+    {{ rank_tabs(rk, 10, 'home') }}
+  </section>
 
-{% if has_clinics %}
-<a class="feature" href="{{ u('/clinic/') }}">
-  {{ ico('hospital', 56) }}
-  <div>
-    <p class="eyebrow">아이가 밤에 아플 때</p>
-    <h2>지금 우리 동네 밤·주말 소아과</h2>
-    <p class="lead">평일 밤 8시 이후, 토·일·공휴일에 진료하는 소아청소년과만 모았어요.</p>
-  </div>
-</a>
-{% endif %}
+  <section class="side">
+    <h2>아이 단계별로 보기</h2>
+    {{ stage_tiles() }}
+    {% if has_clinics %}
+    <a class="feature" href="{{ u('/clinic/') }}" data-reveal>
+      {{ ico('hospital', 56) }}
+      <div>
+        <p class="eyebrow">아이가 밤에 아플 때</p>
+        <h2>지금 우리 동네 밤·주말 소아과</h2>
+      </div>
+    </a>
+    {% endif %}
+    <a class="feature" href="{{ u('/trend/birth-bonus/') }}" data-reveal>
+      {{ ico('gift', 56) }}
+      <div>
+        <p class="eyebrow">공공데이터로 직접 집계</p>
+        <h2>우리 동네 출산축하금, 전국 몇 등?</h2>
+      </div>
+    </a>
+  </section>
+</div>
 
 {% if trends %}
 <section>
   <div class="sec-head"><h2 class="ih">{{ ico('chat') }} 요즘 엄마들이 많이 이야기하는 것</h2><a href="{{ u('/trend/') }}">트렌드 전체</a></div>
-  <div class="tgrid">{% for t in trends %}{{ trend_card(t) }}{% endfor %}</div>
+  <div class="tgrid" data-stagger>{% for t in trends %}{{ trend_card(t) }}{% endfor %}</div>
 </section>
 {% endif %}
 
@@ -50,18 +66,6 @@
 {% endif %}
 
 {{ ad("home-1") }}
-
-{% if new %}
-<section>
-  <div class="sec-head"><h2 class="ih">{{ ico('new') }} 새로 생긴 혜택</h2><a href="{{ u('/changes/') }}">변경 기록</a></div>
-  {{ grid(new) }}
-</section>
-{% endif %}
-
-<section>
-  <h2 class="ih">{{ ico('fire') }} 엄마들이 많이 찾는 혜택</h2>
-  {{ grid(popular) }}
-</section>
 
 <section>
   <h2 class="ih">{{ ico('pin') }} 우리 동네 혜택</h2>
