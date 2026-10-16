@@ -159,25 +159,3 @@
 </div>
 {% endmacro %}
 
-{% macro quest() %}
-<section class="quest" data-quest aria-labelledby="quest-title">
-  <div class="q-head">
-    <img class="q-avatar" src="{{ u('/static/emoji/hatching.png') }}" alt="" width="64" height="64" data-q-avatar>
-    <div>
-      <p class="eyebrow" data-q-level>Lv.1 새싹맘</p>
-      <h2 id="quest-title">나의 혜택 퀘스트</h2>
-    </div>
-    <span class="q-xp" data-q-xp>0 XP</span>
-  </div>
-  <div class="q-bar" role="progressbar" aria-label="다음 레벨까지" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-q-bar><i style="width: 0%"></i></div>
-  <p class="q-next" data-q-next>단계별 체크리스트에서 챙긴 혜택을 체크하면 경험치가 쌓여요.</p>
-  <ul class="q-badges" data-q-badges>
-    <li data-badge="first"><img src="{{ u('/static/emoji/hatching.png') }}" alt="" width="36" height="36"><span>첫 체크</span></li>
-    <li data-badge="five"><img src="{{ u('/static/emoji/star.png') }}" alt="" width="36" height="36"><span>5개 챙김</span></li>
-    <li data-badge="stage"><img src="{{ u('/static/emoji/trophy.png') }}" alt="" width="36" height="36"><span>단계 완주</span></li>
-    <li data-badge="share"><img src="{{ u('/static/emoji/letter.png') }}" alt="" width="36" height="36"><span>공유왕</span></li>
-    <li data-badge="master"><img src="{{ u('/static/emoji/party.png') }}" alt="" width="36" height="36"><span>혜택마스터</span></li>
-  </ul>
-  <a class="btn wide" href="{{ u('/stage/birth/') }}" data-q-cta>오늘의 퀘스트: 출산·산후 체크리스트 시작 →</a>
-</section>
-{% endmacro %}

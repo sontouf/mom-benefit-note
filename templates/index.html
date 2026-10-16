@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import grid, ad, ico, trend_card, rank_tabs, stat_strip, journey, quest %}
+{% from "_macros.html" import grid, ad, ico, trend_card, rank_tabs, stat_strip, journey %}
 {% block title %}{{ site_name }} · 임신·출산·육아 지원금, 신청 안 하면 0원{% endblock %}
 {% block main %}
 <section class="hero">
@@ -36,7 +36,7 @@
     {{ rank_tabs(rk, 8, 'home') }}
   </section>
   <div class="side">
-    {{ quest() }}
+    <h2 class="ih side-title">{{ ico('bulb') }} 바로가기</h2>
     <div class="quick">
       <a class="qk pastel-2" href="{{ u('/clinic/') }}">{{ ico('moon', 40) }}<strong>밤·주말 소아과</strong><small>달빛어린이병원</small></a>
       <a class="qk pastel-0" href="{{ u('/trend/birth-bonus/') }}">{{ ico('gift', 40) }}<strong>출산축하금 순위</strong><small>우리 동네 몇 등?</small></a>

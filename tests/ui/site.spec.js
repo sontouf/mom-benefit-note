@@ -5,7 +5,11 @@ const pageErrors = new WeakMap();
 test.beforeEach(async ({ page }) => {
   const errs = [];
   pageErrors.set(page, errs);
-  page.on("pageerror", (e) => errs.push("pageerror: " + e.message));
+  page.on("pageerror", (e) => {
+    // 페이지 전환 효과(View Transition)를 빠른 이동이 중단시킬 때 브라우저가 남기는 무해한 메시지
+    if (/Transition was aborted|ViewTransition/.test(e.message)) return;
+    errs.push("pageerror: " + e.message);
+  });
   page.on("console", (m) => {
     // 외부 이미지(유튜브 썸네일 등) 차단 같은 네트워크 오류는 제외
     if (m.type() === "error" && !/Failed to load resource|net::ERR/.test(m.text())) errs.push(m.text());
@@ -159,18 +163,7 @@ test.describe("레이아웃", () => {
   }
 });
 
-test.describe("게임 요소·광고", () => {
-  test("체크하면 퀘스트 경험치와 배지가 쌓인다", async ({ page }) => {
-    await page.goto("/stage/birth/");
-    await page.locator(".checklist input[type=checkbox]").first().check({ force: true });
-    await page.goto("/");
-    const quest = page.locator("[data-quest]");
-    await quest.scrollIntoViewIfNeeded();
-    await expect(quest.locator("[data-q-xp]")).toHaveText("10 XP");
-    await expect(quest.locator('[data-badge="first"]')).toHaveClass(/got/);
-    await expect(quest.locator("[data-q-cta]")).toContainText("다음 퀘스트");
-  });
-
+test.describe("여정 지도·광고", () => {
   test("육아 여정 지도 스테이지로 이동", async ({ page }) => {
     await page.goto("/");
     await page.locator(".jnode").filter({ hasText: "출산" }).first().click();
