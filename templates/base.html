@@ -27,8 +27,15 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ adsense }}" crossorigin="anonymous"></script>
 {% endif %}
 {% if ga_id %}
-<script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','{{ ga_id }}');</script>
+<script>
+// 실제 도메인에서만 GA 를 켠다 (테스트·미리보기 방문이 통계에 섞이지 않게)
+if (location.origin === "{{ site_root }}") {
+  var g = document.createElement("script"); g.async = true; g.src = "https://www.googletagmanager.com/gtag/js?id={{ ga_id }}";
+  document.head.appendChild(g);
+  window.dataLayer = window.dataLayer || []; window.gtag = function () { dataLayer.push(arguments); };
+  gtag("js", new Date()); gtag("config", "{{ ga_id }}");
+}
+</script>
 {% endif %}
 {% block head %}{% endblock %}
 </head>
@@ -125,7 +132,7 @@
     <p>출처: 행정안전부 「대한민국 공공서비스(혜택) 정보」 · 공공데이터포털 · 매일 아침 자동 갱신 (최종 {{ today.isoformat() }}) · <a href="{{ u('/about/') }}">사이트 소개</a> · <a href="{{ u('/changes/') }}">신규·변경 기록</a> · <a href="{{ u('/privacy/') }}">개인정보처리방침</a> · <a href="{{ u('/rss.xml') }}">RSS</a></p>
   </div>
 </footer>
-<script>window.MB = {base: "{{ u('') }}", data: "{{ u('/static/find.json') }}", svc: "{{ u('/s/') }}", counter: "{{ counter_url }}", path: "{{ path }}"};</script>
+<script>window.MB = {base: "{{ u('') }}", data: "{{ u('/static/find.json') }}", svc: "{{ u('/s/') }}", counter: "{{ counter_url }}", site: "{{ site_root }}", path: "{{ path }}"};</script>
 <script src="{{ u('/static/vendor/motion.js') }}" defer></script>
 <script src="{{ u('/static/app.js') }}" defer></script>
 <script src="{{ u('/static/ui.js') }}" defer></script>

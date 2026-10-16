@@ -227,7 +227,8 @@
 
   // ---------- 방문자 카운터 (COUNTER_URL 이 설정됐을 때만) ----------
   function counter() {
-    if (!MB.counter) return;
+    // 실제 도메인에서만 센다 (테스트·미리보기 방문 제외)
+    if (!MB.counter || location.origin !== MB.site) return;
     var sid;
     try { sid = sessionStorage.getItem("mb-sid"); } catch (e) { sid = null; }
     if (!sid) {
