@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import grid, ad, share %}
+{% from "_macros.html" import grid, ad, share, ico %}
 {% set region = (r.sido ~ (' ' ~ r.sigungu if r.sigungu else '')) if r.sido else ('전국' if r.national else r.org ~ ' 관할') %}
 {% block title %}{{ r.name }}{% if r.amount_label %} {{ r.amount_label }}{% endif %} 신청방법·대상 | {{ site_name }}{% endblock %}
 {% block desc %}{{ r.name }}({{ region }}) — {{ r.summary | truncate(100) }} 신청기한: {{ r.deadline_text or '기관 문의' }}{% endblock %}
@@ -52,7 +52,7 @@
   {% macro sec(title, body, cls='') %}{% if body %}<section class="blk {{ cls }}"><h2>{{ title }}</h2><div class="txt">{{ body | text }}</div></section>{% endif %}{% endmacro %}
   {{ sec("👤 누가 받을 수 있나요?", r.target_text) }}
   {{ sec("🎁 무엇을 받나요?", r.content) }}
-  {{ ad("svc-1") }}
+  {{ ad("svc-mid") }}
   {{ sec("📋 선정 기준", r.criteria) }}
   {{ sec("✍️ 어떻게 신청하나요?", r.how) }}
   {{ sec("📎 준비 서류", r.documents) }}
@@ -61,7 +61,7 @@
   {{ sec("근거 법령", r.laws, 'muted') }}
 
   <section class="blk videos" id="videos">
-    <h2>📺 영상으로 보는 신청 방법</h2>
+    <h2 class="ih">{{ ico('tv') }} 영상으로 보는 신청 방법</h2>
     {% if video_items %}
     <div class="vgrid">
       {% for v in video_items %}
@@ -77,31 +77,56 @@
     </div>
     <p class="hint">YouTube에서 찾은 영상이에요. 영상 속 정보는 촬영 시점 기준이라 지금과 다를 수 있어요.</p>
     {% else %}
-    <a class="yt-search" href="{% for k, _, u in review_links if k == 'youtube' %}{{ u }}{% endfor %}" rel="nofollow noopener" target="_blank">
-      <span class="play sm" aria-hidden="true"></span>
-      <span><strong>유튜브에서 '{{ r.name | truncate(20, true, '…') }}' 영상 찾기</strong><small>신청 방법·후기 영상을 바로 볼 수 있어요</small></span>
+    <a class="yt-hero" href="{% for k, _, url in review_links if k == 'youtube' %}{{ url }}{% endfor %}" rel="nofollow noopener" target="_blank">
+      <span class="yt-screen" aria-hidden="true"><img src="{{ u('/static/emoji/' ~ ((r.stages or ['money'])[0]) ~ '.png') }}" alt="" width="72" height="72"><span class="play"></span></span>
+      <span class="yt-text"><small>YouTube 검색</small><strong>'{{ r.name | truncate(22, true, '…') }}' 신청 방법 영상 보기</strong><em>영상 목록 열기 ↗</em></span>
     </a>
+    {% if doc_channels %}
+    <p class="rv-label">소아과·육아 전문가 채널에서도 확인해 보세요</p>
+    <div class="doc-row">
+      {% for c in doc_channels %}<a class="doc" href="{{ c.url }}" rel="noopener" target="_blank"><img src="{{ c.thumb }}" alt="" width="44" height="44" loading="lazy" referrerpolicy="no-referrer"><span><strong>{{ c.name.split(' (')[0] }}</strong><small>{{ c.subs }}</small></span></a>{% endfor %}
+    </div>
+    {% endif %}
     {% endif %}
   </section>
 
   <section class="blk reviews" id="reviews">
-    <h2>💬 받아본 엄마들의 후기</h2>
+    <h2 class="ih">{{ ico('love-face') }} 받아본 엄마들의 후기</h2>
     {% if review_items %}
     <ul class="review-list">
       {% for it in review_items %}
-      <li><a href="{{ it.link }}" rel="nofollow noopener" target="_blank">
-        <span class="src-badge {{ 'cafe' if it.src == '카페' }}">{{ '맘카페·카페' if it.src == '카페' else '블로그' }}</span>
-        <strong>{{ it.title }}</strong>
-        {% if it.desc %}<span class="rv-desc">{{ it.desc }}</span>{% endif %}
-        <span class="rv-by">{{ it.by }}{% if it.date %} · {{ it.date[:4] }}.{{ it.date[4:6] }}.{{ it.date[6:8] }}{% endif %}</span>
+      <li><a class="rv-card" href="{{ it.link }}" rel="nofollow noopener" target="_blank">
+        <span class="rv-thumb {{ 'cafe' if it.src == '카페' else 'blog' }}">
+          {% if it.thumb %}<img src="{{ it.thumb }}" alt="" loading="lazy" referrerpolicy="no-referrer">
+          {% else %}<img class="ph" src="{{ u('/static/emoji/' ~ ('chat' if it.src == '카페' else 'letter') ~ '.png') }}" alt="" width="48" height="48">{% endif %}
+          <span class="src-badge {{ 'cafe' if it.src == '카페' else 'blog' }}">{{ '맘카페' if it.src == '카페' else '블로그' }}</span>
+        </span>
+        <span class="rv-body">
+          <strong>{{ it.title }}</strong>
+          {% if it.desc %}<span class="rv-desc">{{ it.desc }}</span>{% endif %}
+          <span class="rv-by">{{ it.by }}{% if it.date %} · {{ it.date[:4] }}.{{ it.date[4:6] }}.{{ it.date[6:8] }}{% endif %}</span>
+        </span>
       </a></li>
       {% endfor %}
     </ul>
     <p class="hint">네이버 검색 API로 찾은 글이에요. 개인 경험담이라 실제 조건은 다를 수 있어요.</p>
     {% endif %}
-    <p class="rv-label">{{ '다른 곳 후기도 보기' if review_items else '플랫폼별 후기 바로 찾기' }}</p>
-    <div class="rv-links">
-      {% for key, label, url in review_links %}<a class="rv-link {{ key }}" href="{{ url }}" rel="nofollow noopener" target="_blank">{{ label }}</a>{% endfor %}
+    <p class="rv-label">{{ '다른 곳 후기도 보기' if review_items else '엄마들 후기, 여기서 바로 볼 수 있어요' }}</p>
+    <div class="sns-grid">
+      {% for key, label, url in review_links %}
+      <a class="sns {{ key }}" href="{{ url }}" rel="nofollow noopener" target="_blank">
+        <span class="sns-ico" aria-hidden="true">
+          {% if key == 'cafe' %}<svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>
+          {% elif key == 'blog' %}<svg viewBox="0 0 24 24"><path d="M6 4h3l6 9V4h3v16h-3L9 11v9H6z"/></svg>
+          {% elif key == 'threads' %}<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-3.5 7.1"/></svg>
+          {% elif key == 'insta' %}<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="5"/><circle cx="12" cy="12" r="3.6"/><circle cx="17" cy="7" r="1"/></svg>
+          {% elif key == 'youtube' %}<svg viewBox="0 0 24 24"><rect x="2.5" y="5.5" width="19" height="13" rx="4"/><path d="m10 9 5 3-5 3z" class="fill"/></svg>
+          {% else %}<svg viewBox="0 0 24 24"><path d="M5 4h4l10 16h-4zM19 4 5 20"/></svg>{% endif %}
+        </span>
+        <span class="sns-text"><strong>{{ label }}</strong><small>'{{ r.name | truncate(14, true, '…') }} 후기'</small></span>
+        <span class="sns-go" aria-hidden="true">↗</span>
+      </a>
+      {% endfor %}
     </div>
   </section>
 
@@ -113,6 +138,8 @@
   </div>
   <p class="meta">최종 수정 {{ r.modified or '-' }} · 금액은 지원 내용에서 자동으로 뽑은 '최대' 값이라 실제와 다를 수 있어요.</p>
 </article>
+
+{{ ad("svc-end") }}
 
 {% if related %}
 <section>

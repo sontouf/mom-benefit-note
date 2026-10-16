@@ -11,9 +11,9 @@
 </a>
 {% endmacro %}
 
-{% macro grid(items) %}
+{% macro grid(items, infeed=None) %}
 <div class="grid">
-{% for r in items %}{{ card(r) }}{% endfor %}
+{% for r in items %}{{ card(r) }}{% if infeed and loop.index == 9 and items | length > 12 %}{{ ad(infeed, True) }}{% endif %}{% endfor %}
 </div>
 {% endmacro %}
 
@@ -31,10 +31,22 @@
 </ol>
 {% endmacro %}
 
-{% macro ad(slot) %}
-{% if adsense %}
-<div class="ad"><ins class="adsbygoogle" style="display:block" data-ad-client="{{ adsense }}" data-ad-slot="{{ slot }}" data-ad-format="auto" data-full-width-responsive="true"></ins>
-<script>(adsbygoogle=window.adsbygoogle||[]).push({});</script></div>
+{% macro ad(place, infeed=False) %}
+{% set a = ad_for(place) %}
+{% if a %}
+<aside class="ad {{ 'ad-card card' if infeed else 'ad-band' }}" aria-label="광고">
+  <span class="ad-label">광고</span>
+  {% if a.type == 'adsense' %}
+  <ins class="adsbygoogle" style="display:block" data-ad-client="{{ adsense }}" data-ad-slot="{{ a.slot }}" data-ad-format="{{ 'fluid' if infeed else 'auto' }}" data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+  {% else %}
+  <a class="house pastel-{{ {'peach': 0, 'butter': 1, 'mint': 2, 'sky': 3, 'lilac': 4}.get(a.bg, 0) }}" href="{{ a.url }}" rel="sponsored noopener" target="_blank">
+    {% if a.image %}<img src="{{ a.image }}" alt="" width="72" height="72" loading="lazy">{% endif %}
+    <span><strong>{{ a.title }}</strong>{% if a.desc %}<small>{{ a.desc }}</small>{% endif %}</span>
+    {% if a.cta %}<em>{{ a.cta }} →</em>{% endif %}
+  </a>
+  {% endif %}
+</aside>
 {% endif %}
 {% endmacro %}
 
@@ -121,4 +133,51 @@
   <div><b data-count="{{ stats.regions }}">{{ stats.regions | comma }}</b><span>시군구 정보</span></div>
   <div class="live" data-live hidden><b data-live-now>0</b><span><i class="pulse" aria-hidden="true"></i>지금 보는 사람</span></div>
 </div>
+{% endmacro %}
+
+{% macro journey() %}
+{% set path = ["pre", "pregnancy", "birth", "infant", "elementary", "teen"] %}
+<div class="journey" data-reveal>
+  <ol class="jmap">
+  {% for slug in path %}{% if stage_counts.get(slug) %}{% set s = stages[slug] %}
+    <li>
+      <a href="{{ u('/stage/' ~ slug ~ '/') }}" class="jnode pastel-{{ loop.index0 % 5 }}">
+        <span class="jstep">STAGE {{ loop.index }}</span>
+        <img src="{{ u('/static/emoji/' ~ slug ~ '.png') }}" alt="" width="52" height="52" loading="lazy">
+        <strong>{{ s.name }}</strong>
+        <small>{{ stage_counts[slug] | comma }}개 혜택</small>
+      </a>
+    </li>
+  {% endif %}{% endfor %}
+  </ol>
+  <div class="jside">
+    <span>이런 가정이라면</span>
+    {% for slug in ["multichild", "singleparent", "working", "saving"] %}{% if stage_counts.get(slug) %}
+    <a class="chip jchip" href="{{ u('/stage/' ~ slug ~ '/') }}"><img src="{{ u('/static/emoji/' ~ slug ~ '.png') }}" alt="" width="20" height="20">{{ stages[slug].name }} <small>{{ stage_counts[slug] | comma }}</small></a>
+    {% endif %}{% endfor %}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro quest() %}
+<section class="quest" data-quest aria-labelledby="quest-title">
+  <div class="q-head">
+    <img class="q-avatar" src="{{ u('/static/emoji/hatching.png') }}" alt="" width="64" height="64" data-q-avatar>
+    <div>
+      <p class="eyebrow" data-q-level>Lv.1 새싹맘</p>
+      <h2 id="quest-title">나의 혜택 퀘스트</h2>
+    </div>
+    <span class="q-xp" data-q-xp>0 XP</span>
+  </div>
+  <div class="q-bar" role="progressbar" aria-label="다음 레벨까지" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-q-bar><i style="width: 0%"></i></div>
+  <p class="q-next" data-q-next>단계별 체크리스트에서 챙긴 혜택을 체크하면 경험치가 쌓여요.</p>
+  <ul class="q-badges" data-q-badges>
+    <li data-badge="first"><img src="{{ u('/static/emoji/hatching.png') }}" alt="" width="36" height="36"><span>첫 체크</span></li>
+    <li data-badge="five"><img src="{{ u('/static/emoji/star.png') }}" alt="" width="36" height="36"><span>5개 챙김</span></li>
+    <li data-badge="stage"><img src="{{ u('/static/emoji/trophy.png') }}" alt="" width="36" height="36"><span>단계 완주</span></li>
+    <li data-badge="share"><img src="{{ u('/static/emoji/letter.png') }}" alt="" width="36" height="36"><span>공유왕</span></li>
+    <li data-badge="master"><img src="{{ u('/static/emoji/party.png') }}" alt="" width="36" height="36"><span>혜택마스터</span></li>
+  </ul>
+  <a class="btn wide" href="{{ u('/stage/birth/') }}" data-q-cta>오늘의 퀘스트: 출산·산후 체크리스트 시작 →</a>
+</section>
 {% endmacro %}

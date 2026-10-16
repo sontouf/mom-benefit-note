@@ -20,11 +20,21 @@ const isMobile = (p) => p !== "desktop-chrome";
 test.describe("검색", () => {
   test("히어로 검색을 누르면 바로 열리고 입력칸에 포커스가 간다", async ({ page }) => {
     await page.goto("/");
-    const t0 = Date.now();
-    await page.locator(".hero-search").click();
-    await expect(page.locator("#search")).toBeVisible();
-    await expect(page.locator("#q")).toBeFocused();
-    expect(Date.now() - t0, "1초 안에 반응").toBeLessThan(1000);
+    const btn = page.locator(".hero-search");
+    await btn.waitFor();
+    // 클릭 이벤트가 들어간 순간부터 검색창이 보이고 포커스될 때까지의 시간 (브라우저 안에서 측정)
+    const ms = await page.evaluate(() => new Promise((res) => {
+      const t0 = performance.now();
+      document.querySelector(".hero-search").click();
+      const tick = () => {
+        const layer = document.getElementById("search");
+        if (!layer.hidden && document.activeElement && document.activeElement.id === "q") res(performance.now() - t0);
+        else requestAnimationFrame(tick);
+      };
+      tick();
+    }));
+    expect(ms, "누르자마자(0.3초 안에) 열려야 해요").toBeLessThan(300);
+    await expect(page.locator("#search .search-panel")).toBeVisible();
   });
 
   test("입력하면 결과가 나오고, 누르면 상세로 간다", async ({ page }) => {
@@ -145,6 +155,43 @@ test.describe("레이아웃", () => {
       const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
       expect(over, "가로 스크롤이 생기면 안 돼요").toBeLessThanOrEqual(1);
       await expect(page.locator("h1").first()).toBeVisible();
+    });
+  }
+});
+
+test.describe("게임 요소·광고", () => {
+  test("체크하면 퀘스트 경험치와 배지가 쌓인다", async ({ page }) => {
+    await page.goto("/stage/birth/");
+    await page.locator(".checklist input[type=checkbox]").first().check({ force: true });
+    await page.goto("/");
+    const quest = page.locator("[data-quest]");
+    await quest.scrollIntoViewIfNeeded();
+    await expect(quest.locator("[data-q-xp]")).toHaveText("10 XP");
+    await expect(quest.locator('[data-badge="first"]')).toHaveClass(/got/);
+    await expect(quest.locator("[data-q-cta]")).toContainText("다음 퀘스트");
+  });
+
+  test("육아 여정 지도 스테이지로 이동", async ({ page }) => {
+    await page.goto("/");
+    await page.locator(".jnode").filter({ hasText: "출산" }).first().click();
+    await expect(page).toHaveURL(/\/stage\/birth\/$/);
+  });
+
+  test("광고 설정이 없으면 광고 자리를 만들지 않는다", async ({ page }) => {
+    for (const path of ["/", "/stage/birth/", "/trend/zero-won/"]) {
+      await page.goto(path);
+      await expect(page.locator("aside.ad")).toHaveCount(0);
+    }
+  });
+});
+
+test.describe("좁은 화면 (360px)", () => {
+  test.use({ viewport: { width: 360, height: 740 } });
+  for (const path of ["/", "/find/", "/ranking/", "/youtube/", "/clinic/", "/stage/infant/"]) {
+    test(`가로 넘침 없음 360px ${path}`, async ({ page }) => {
+      await page.goto(path);
+      const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      expect(over).toBeLessThanOrEqual(1);
     });
   }
 });

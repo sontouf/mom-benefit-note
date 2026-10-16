@@ -145,8 +145,9 @@ class ReviewTest(unittest.TestCase):
             "cafearticle": [{"title": "첫만남이용권 사용처 후기", "link": "https://cafe.naver.com/x/3",
                              "description": "기저귀 샀어요 &amp; 분유도", "cafename": "맘카페"}],
         }
-        orig = reviews._call
+        orig, orig_og = reviews._call, reviews.og_image
         reviews._call = lambda kind, q, c, s: fake[kind]
+        reviews.og_image = lambda url: "https://img.example/thumb.jpg"
         try:
             recs = [{"id": "A", "name": "첫만남이용권 지원"}]
             cache, calls = reviews.fetch(recs, {}, "id", "sec", date(2026, 10, 17))
@@ -157,8 +158,10 @@ class ReviewTest(unittest.TestCase):
             self.assertIn("&", items[1]["desc"])
             _, calls2 = reviews.fetch(recs, cache, "id", "sec", date(2026, 10, 20))
             self.assertEqual(calls2, 0)  # 7일 안에는 다시 부르지 않는다
+            self.assertEqual(items[0]["thumb"], "https://img.example/thumb.jpg")  # 블로그만 썸네일
+            self.assertNotIn("thumb", items[1])
         finally:
-            reviews._call = orig
+            reviews._call, reviews.og_image = orig, orig_og
 
 
 class VideoTest(unittest.TestCase):

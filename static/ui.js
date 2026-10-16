@@ -420,10 +420,60 @@
     });
   }
 
+
+  // ---------- 혜택 퀘스트 (경험치·레벨·배지, 이 기기에만 저장) ----------
+  var LEVELS = [[0, "새싹맘", "hatching"], [30, "새내기맘", "chick"], [80, "알뜰맘", "love-face"], [150, "고수맘", "star"], [250, "혜택마스터", "party"]];
+  var PATH = [["pre", "임신 준비·난임"], ["pregnancy", "임신 중"], ["birth", "출산·산후"], ["infant", "영유아"], ["elementary", "초등학생"], ["teen", "중·고등학생"]];
+  function questState() {
+    var checked = 0, stagesDone = 0, shared = false, done = {};
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k.indexOf("ck:") === 0) {
+          var o = JSON.parse(localStorage.getItem(k) || "{}");
+          for (var id in o) if (o[id]) checked++;
+        } else if (k.indexOf("ck-done:") === 0 && localStorage.getItem(k) === "1") { stagesDone++; done[k.slice(14)] = true; }
+      }
+      shared = localStorage.getItem("mb-shared") === "1";
+    } catch (e) { /* 저장 불가 */ }
+    var xp = checked * 10 + stagesDone * 30 + (shared ? 20 : 0), lv = 0;
+    for (var j = 0; j < LEVELS.length; j++) if (xp >= LEVELS[j][0]) lv = j;
+    return { checked: checked, stagesDone: stagesDone, shared: shared, xp: xp, lv: lv, done: done };
+  }
+  function quest() {
+    var box = $("[data-quest]");
+    if (!box) return;
+    var st = questState(), L = LEVELS[st.lv], next = LEVELS[st.lv + 1];
+    $("[data-q-level]", box).textContent = "Lv." + (st.lv + 1) + " " + L[1];
+    $("[data-q-avatar]", box).src = MB.base + "/static/emoji/" + L[2] + ".png";
+    var pct = next ? Math.round((st.xp - L[0]) / (next[0] - L[0]) * 100) : 100;
+    var bar = $("[data-q-bar]", box);
+    bar.setAttribute("aria-valuenow", pct);
+    $("[data-q-next]", box).textContent = next
+      ? "다음 레벨 '" + next[1] + "'까지 " + (next[0] - st.xp) + " XP · 챙긴 혜택 " + st.checked + "개"
+      : "최고 레벨 달성! 챙긴 혜택 " + st.checked + "개 🎉";
+    var badges = { first: st.checked >= 1, five: st.checked >= 5, stage: st.stagesDone >= 1, share: st.shared, master: st.lv >= 4 };
+    $$("[data-badge]", box).forEach(function (li) { li.classList.toggle("got", !!badges[li.getAttribute("data-badge")]); });
+    var nextStage = PATH.filter(function (p) { return !st.done[p[0]]; })[0] || PATH[0];
+    var cta = $("[data-q-cta]", box);
+    cta.href = MB.base + "/stage/" + nextStage[0] + "/";
+    cta.textContent = (st.checked ? "다음 퀘스트: " : "오늘의 퀘스트: ") + nextStage[1] + " 체크리스트 →";
+    var xpEl = $("[data-q-xp]", box), fill = $("i", bar);
+    function run() {
+      fill.style.width = pct + "%";
+      if (animOK && st.xp > 0) M.animate(0, st.xp, { duration: 1, ease: EASE, onUpdate: function (v) { xpEl.textContent = Math.round(v) + " XP"; } });
+      else xpEl.textContent = st.xp + " XP";
+      var prev = 0;
+      try { prev = parseInt(localStorage.getItem("mb-level") || "0", 10); localStorage.setItem("mb-level", String(st.lv)); } catch (e) { /* 무시 */ }
+      if (st.lv > prev) setTimeout(function () { burstAt($("[data-q-avatar]", box), 18); }, 500);
+    }
+    if (animOK && M.inView) M.inView(box, run); else run();
+  }
+
   function ready(fn) { if (document.readyState !== "loading") fn(); else document.addEventListener("DOMContentLoaded", fn); }
   ready(function () {
     animOK = !!(window.Motion && window.Motion.animate && !reduce);
     M = window.Motion || null;
-    tabs(); search(); stickyCta(); counter(); youtube(); menu(); joy(); parallax(); tilt(); ripple(); scrollUi(); hops(); reveal();
+    tabs(); search(); stickyCta(); counter(); youtube(); menu(); joy(); quest(); parallax(); tilt(); ripple(); scrollUi(); hops(); reveal();
   });
 })();

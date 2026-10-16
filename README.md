@@ -78,6 +78,21 @@ python tools/post_threads.py drafts/2026-10-17.json --key birth-bonus
 - 키가 없을 때도 혜택마다 네이버 블로그·맘카페·스레드·인스타·X·유튜브 **후기 검색 링크**는 항상 표시됩니다.
 - 후기는 인기 혜택 300개를 7일마다, 영상은 하루 할당량(90회) 안에서 14일마다 갱신합니다.
 
+## 광고 배너 (`data/ads.json`)
+이용을 방해하지 않는 자리만 씁니다: 홈 중간 1곳, 상세 페이지 "지원 내용" 뒤·후기 뒤, 목록 카드 사이(9번째, 1곳), 트렌드 글 끝.
+팝업, 화면 고정, 첫 화면, 검색·메뉴 안, 신청 버튼 근처에는 넣지 않습니다. 모든 광고에 "광고" 표시가 붙습니다.
+
+- **AdSense:** Variable `ADSENSE_CLIENT`(ca-pub-…)를 넣고, AdSense에서 만든 광고 단위 ID를 `adsense_slots` 의 각 자리에 넣습니다. 자동 광고는 쓰지 않습니다(위치를 통제할 수 없음).
+- **직접 받은 배너(제휴·협찬):** `house` 항목의 `enabled` 를 `true` 로 바꾸고 제목·이미지·링크·자리(`places`)를 적습니다. 링크에는 `rel="sponsored"` 가 붙습니다.
+- 아무것도 설정하지 않으면 광고 자리 자체가 생기지 않습니다(빈 공간 없음).
+
+## UI 테스트 (Playwright, 실제 브라우저)
+```bash
+python run.py build
+cd tests/ui && npm ci && npx playwright test   # 데스크톱·안드로이드 크롬, 아이폰 사파리
+```
+GitHub Actions에서 배포 전에 자동으로 돌고, 실패하면 배포하지 않습니다(리포트는 `ui-test-report` 아티팩트).
+
 ## 검색 노출·수익화 설정 (코드는 준비됨, 값만 넣으면 켜짐)
 GitHub 저장소 → Settings → Secrets and variables → Actions → **Variables** 에 넣으면 다음 자동 실행부터 반영됩니다.
 

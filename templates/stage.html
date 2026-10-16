@@ -38,11 +38,10 @@
   </div>
 </section>
 
-{{ ad("stage-1") }}
 
 <section>
   <h2>{{ place }}{{ info.name }} 혜택 전체 <small class="count">많이 찾는 순</small></h2>
-  {{ grid(items) }}
+  {{ grid(items, "list-infeed") }}
   {% if pages > 1 %}
   <nav class="pager">
     {% if page > 1 %}<a href="{{ u(base if page == 2 else base ~ 'page/' ~ (page - 1) ~ '/') }}">← 이전</a>{% endif %}

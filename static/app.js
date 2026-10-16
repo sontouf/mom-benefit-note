@@ -13,6 +13,7 @@
   document.querySelectorAll("[data-share]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var data = { title: btn.dataset.title, text: btn.dataset.title + " — 신청 안 하면 0원이래요", url: location.href };
+      try { localStorage.setItem("mb-shared", "1"); } catch (e) { /* 무시 */ }
       if (navigator.share) {
         navigator.share(data).catch(function () {});
       } else if (navigator.clipboard) {
@@ -32,7 +33,12 @@
       cb.addEventListener("change", function () {
         done[cb.value] = cb.checked;
         li.classList.toggle("done", cb.checked);
-        try { localStorage.setItem(key, JSON.stringify(done)); } catch (e) { /* 저장 불가 환경 */ }
+        try {
+          localStorage.setItem(key, JSON.stringify(done));
+          var all = list.querySelectorAll("input[type=checkbox]").length;
+          var got = list.querySelectorAll("input[type=checkbox]:checked").length;
+          localStorage.setItem("ck-done:" + list.dataset.key, all && got === all ? "1" : "");
+        } catch (e) { /* 저장 불가 환경 */ }
       });
     });
   });

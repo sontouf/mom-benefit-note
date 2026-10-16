@@ -14,8 +14,7 @@
 {% endif %}
 
 <p class="sort-note">{{ sort_note or '엄마들이 많이 찾는 순' }}</p>
-{{ grid(items) }}
-{{ ad("list-1") }}
+{{ grid(items, "list-infeed") }}
 
 {% if pages > 1 %}
 <nav class="pager">

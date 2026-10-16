@@ -69,6 +69,8 @@ class Site:
     def __init__(self, records, events, out_dir, today=None, trends=None, clinics=None, views_history=None,
                  reviews=None, videos=None, channels=None):
         self.channels = channels or {"channels": []}
+        ads_path = ROOT / "data" / "ads.json"
+        self.ads = json.loads(ads_path.read_text(encoding="utf-8")) if ads_path.exists() else {}
         self.reviews = reviews or {}
         self.videos = videos or {}
         self.views_history = views_history or {}
@@ -100,9 +102,23 @@ class Site:
             naver_verify=os.environ.get("NAVER_SITE_VERIFICATION", ""),
             ga_id=os.environ.get("GA_ID", ""),
             counter_url=os.environ.get("COUNTER_URL", "").rstrip("/"),
+            ad_for=self.ad_for,
         )
 
     # ---------- helpers ----------
+    def ad_for(self, place):
+        """광고 자리에 넣을 것: AdSense 슬롯 > 직접 받은 배너 > 없음(빈 공간도 만들지 않음)."""
+        slot = (self.ads.get("adsense_slots") or {}).get(place)
+        if self.adsense and slot:
+            return {"type": "adsense", "slot": slot}
+        for h in self.ads.get("house", []):
+            if h.get("enabled") and place in h.get("places", []):
+                img = h.get("image", "")
+                if img.startswith("/"):
+                    img = self.u(img)
+                return {"type": "house", **h, "image": img}
+        return None
+
     def u(self, path):
         return self.base_path + quote(path)
 
@@ -208,7 +224,8 @@ class Site:
             self.write(f"/s/{rec['id']}/", "service.html", r=rec, related=self._related(rec, by_stage),
                        review_links=search_links(rec["name"]),
                        review_items=self.reviews.get(rec["id"], {}).get("items", []),
-                       video_items=self.videos.get(rec["id"], {}).get("items", []))
+                       video_items=self.videos.get(rec["id"], {}).get("items", []),
+                       doc_channels=[c for c in self.channels.get("channels", []) if c["cat"] == "parent"][:3])
 
         for slug, info in STAGE_INFO.items():
             items = by_stage[slug]

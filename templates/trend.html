@@ -31,7 +31,6 @@
   <p class="caution">⚠️ {{ t.caution }}</p>
 </section>
 
-{{ ad("trend-1") }}
 
 <section>
   <h2 class="ih">{{ ico('check') }} 공공데이터로 확인된 관련 혜택 <small class="count">{{ t.count }}건</small></h2>
@@ -39,6 +38,7 @@
   {{ grid(t['items']) }}
 </section>
 
+{{ ad("trend-end") }}
 {{ share(t.title) }}
 <p class="meta">주제 선정·인용 확인일 {{ checked }} · 인용은 원문 일부이며 저작권은 각 작성자에게 있어요.</p>
 {% endblock %}

@@ -32,12 +32,12 @@ def search_links(name):
     qq = urllib.parse.quote(f"{q} 후기")
     tag = urllib.parse.quote(re.sub(r"[^0-9A-Za-z가-힣]", "", q))
     return [
-        ("blog", "네이버 블로그", f"https://search.naver.com/search.naver?ssc=tab.blog.all&query={qq}"),
-        ("cafe", "맘카페·카페", f"https://search.naver.com/search.naver?ssc=tab.cafe.all&query={qq}"),
-        ("threads", "스레드", f"https://www.threads.com/search?q={qq}&serp_type=default"),
-        ("insta", "인스타그램", f"https://www.instagram.com/explore/tags/{tag}/"),
-        ("x", "X", f"https://x.com/search?q={qq}&f=live"),
-        ("youtube", "유튜브", f"https://www.youtube.com/results?search_query={qq}"),
+        ("cafe", "맘카페 후기", f"https://search.naver.com/search.naver?ssc=tab.cafe.all&query={qq}"),
+        ("blog", "블로그 후기", f"https://search.naver.com/search.naver?ssc=tab.blog.all&query={qq}"),
+        ("threads", "스레드 이야기", f"https://www.threads.com/search?q={qq}&serp_type=default"),
+        ("insta", "인스타 #태그", f"https://www.instagram.com/explore/tags/{tag}/"),
+        ("youtube", "유튜브 영상", f"https://www.youtube.com/results?search_query={qq}"),
+        ("x", "X 실시간", f"https://x.com/search?q={qq}&f=live"),
     ]
 
 
@@ -53,6 +53,24 @@ def core_name(name):
 
 def _strip(s):
     return html.unescape(re.sub(r"<[^>]+>", "", s or "")).strip()
+
+
+_OG = re.compile(r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)', re.I)
+
+
+def og_image(url):
+    """블로그 글의 대표 이미지(og:image). 링크 미리보기용으로 메타태그만 읽는다. 실패하면 ''."""
+    if "blog.naver.com" in url and "m.blog.naver.com" not in url:
+        url = url.replace("blog.naver.com", "m.blog.naver.com", 1)
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (link preview)"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            head = r.read(200_000).decode("utf-8", "replace")
+        m = _OG.search(head)
+        img = html.unescape(m.group(1)) if m else ""
+        return img if img.startswith("https://") else ""
+    except Exception:  # noqa: BLE001 - 썸네일은 없어도 된다
+        return ""
 
 
 def _call(kind, query, cid, secret):
@@ -98,5 +116,9 @@ def fetch(records, cache, cid, secret, today=None, limit=300):
                 break
             continue
         items.sort(key=lambda x: x["date"], reverse=True)
-        cache[r["id"]] = {"fetched": today.isoformat(), "items": items[:6]}
+        items = items[:6]
+        for it in items:
+            if it["src"] == "블로그":
+                it["thumb"] = og_image(it["link"])
+        cache[r["id"]] = {"fetched": today.isoformat(), "items": items}
     return cache, calls
