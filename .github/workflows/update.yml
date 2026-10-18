@@ -2,7 +2,7 @@ name: daily-update
 
 on:
   schedule:
-    - cron: "0 21 * * *"   # 매일 06:00 KST
+    - cron: "7 20 * * *"   # 매일 05:07 KST (정각은 GitHub 예약이 몰려 늦어지므로 피함)
   workflow_dispatch:
 
 permissions:

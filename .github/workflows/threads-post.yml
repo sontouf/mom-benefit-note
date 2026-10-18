@@ -2,7 +2,7 @@ name: threads-post
 
 on:
   schedule:
-    - cron: "30 11 * * *"   # 매일 20:30 KST (엄마들이 스레드를 많이 보는 시간)
+    - cron: "13 11 * * *"   # 매일 20:13 KST (지연돼도 저녁 시간대에 올라가도록 붐비지 않는 분으로)
   workflow_dispatch:
     inputs:
       check_only:
