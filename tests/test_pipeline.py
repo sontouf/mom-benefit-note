@@ -1,3 +1,5 @@
+import contextlib
+import io
 import json
 import tempfile
 import unittest
@@ -224,10 +226,14 @@ class RunWiringTest(unittest.TestCase):
         api.fetch_all = lambda ep, key: (_ for _ in ()).throw(api.ApiError("인증 실패 (401)"))
         run.fetch_extras = lambda recs, sample=False: None
         os.environ["DATA_GO_KR_KEY"] = "x"
+        out = io.StringIO()
         try:
-            run.fetch(sample=False)  # 예외 없이 끝나야 한다
+            # 경고 출력을 가둬 둔다: 그대로 두면 Actions 화면에 진짜 키 오류처럼 보인다
+            with contextlib.redirect_stdout(out):
+                run.fetch(sample=False)  # 예외 없이 끝나야 한다
         finally:
             api.fetch_all, run.fetch_extras = orig_fetch, orig_extras
+        self.assertIn("::warning", out.getvalue())
 
 
 class AutoPostTest(unittest.TestCase):
