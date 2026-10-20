@@ -5,6 +5,8 @@ const pageErrors = new WeakMap();
 test.beforeEach(async ({ page }) => {
   const errs = [];
   pageErrors.set(page, errs);
+  // 광고 스크립트는 테스트 서버(승인 안 된 도메인)에서 사파리 예외를 던지므로 불러오지 않는다
+  await page.route(/googlesyndication\.com|doubleclick\.net|adtrafficquality\.google/, (r) => r.abort());
   page.on("pageerror", (e) => {
     // 페이지 전환 효과(View Transition)를 빠른 이동이 중단시킬 때 브라우저가 남기는 무해한 메시지
     if (/Transition was aborted|ViewTransition/.test(e.message)) return;
