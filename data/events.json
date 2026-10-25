@@ -1,4 +1,7 @@
 [
+{"date": "2026-10-26", "fields": ["content"], "id": "526000000107", "name": "장애진단 수진교통비 지원", "type": "updated"},
+{"date": "2026-10-26", "fields": ["target_text", "content", "deadline_text"], "id": "439000000840", "name": "농림축산물 가격안정 지원", "type": "updated"},
+{"date": "2026-10-26", "fields": ["deadline_text"], "id": "546000000131", "name": "친환경 농업 육성 지원", "type": "updated"},
 {"date": "2026-10-24", "fields": ["content", "how"], "id": "406000000112", "name": "지역화폐(파주페이)", "type": "updated"},
 {"date": "2026-10-24", "fields": ["content"], "id": "B37003100004", "name": "스포츠산업 예비초기 및 창업도약 프로그램(창업보육지원)", "type": "updated"},
 {"date": "2026-10-24", "fields": ["name"], "id": "370000000113", "name": "+출산·양육 장려금품 지원", "type": "updated"},
