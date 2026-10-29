@@ -482,8 +482,18 @@
 ]
 },
 "145000000110": {
-"fetched": "2026-10-22",
-"items": []
+"fetched": "2026-10-29",
+"items": [
+{
+"by": "하루의 조각들",
+"date": "20261009",
+"desc": "연탄쿠폰, 등유바우처를 이미 지급받은 가구는 중복 지원이 제한되니 주의가 필요합니다. 가구원수별 지원 금액과 잔액 이월 구조 지원 금액은 세대원 수에 따라 계단식으로 늘어납니다. 겨울철 난방 수요가...",
+"link": "https://blog.naver.com/znzl161209/224435758944",
+"src": "블로그",
+"thumb": "https://blogthumb.pstatic.net/MjAyNjEwMDhfMTcz/MDAxNzkxNDcwNjgyMDI0.07X5dv_AP4onF-_waE3KlA1dmCGPBACPEGIuBSQBUUIg.0RrahQvu_VyC6RhpZ450CjQxAxwR13P-Bk8mbJrV9sAg.JPEG/2026-%B5%BF%C0%FD%B1%E2-%BF%A1%B3%CA%C1%F6%B9%D9%BF%EC%C3%B3-%B3%AD%B9%E6%BA%F1-%C1%F6%BF%F8-%B0%A1%C0%CC%B5%E5-%BD%C5%C3%BB-%C0%DA%B0%DD%B0%FA-%BF%E4%B1%DD%C2%F7%B0%A8-%C3%D1%C1%A4%B8%AE-1.jpg?type=w2",
+"title": "2026 동절기 에너지바우처 난방비 지원 가이드 신청 자격과 요금차감...."
+}
+]
 },
 "145000000111": {
 "fetched": "2026-10-24",
