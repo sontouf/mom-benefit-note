@@ -1,4 +1,11 @@
 [
+{"date": "2026-11-21", "fields": ["name"], "id": "647000000108", "name": "경상북도세자녀이상가족진료비지원(모자보건)", "type": "updated"},
+{"date": "2026-11-21", "fields": ["content"], "id": "174100000034", "name": "온라인 신청 시연 테스트(운영)", "type": "updated"},
+{"date": "2026-11-21", "fields": ["target_text", "content", "deadline_text"], "id": "560000000143", "name": "포천시 청년·신혼부부 공공임대주택 주거비 지원(임대보증금)", "type": "updated"},
+{"date": "2026-11-21", "fields": ["name", "target_text", "content", "deadline_text"], "id": "560000000144", "name": "포천시 청년·신혼부부 공공임대주택 주거비 지원(월 임대료)(신규신청)", "type": "updated"},
+{"date": "2026-11-21", "id": "359000000453", "name": "아동치과주치의사업", "type": "new"},
+{"date": "2026-11-21", "id": "359000000472", "name": "치매 치료관리비 지원", "type": "new"},
+{"date": "2026-11-21", "id": "359000000450", "name": "무료 법률·세무 상담서비스", "type": "removed"},
 {"date": "2026-11-20", "id": "O00108600005", "name": "치매조기검진사업", "type": "new"},
 {"date": "2026-11-20", "fields": ["how", "deadline_text"], "id": "554000000205", "name": "다태임신 임산부 교통비 지원(광주시)", "type": "updated"},
 {"date": "2026-11-20", "id": "O00108600001", "name": "만성질환관리사업(당뇨)", "type": "new"},
